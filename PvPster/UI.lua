@@ -226,21 +226,8 @@ local function sortCharacters(list, sortColumn, sortDirection)
 end
 
 
-local function applyBackdrop(frame)
-    frame:SetBackdrop({
-        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-        tile = true,
-        tileSize = 32,
-        edgeSize = 16,
-        insets = { left = 5, right = 5, top = 5, bottom = 5 },
-    })
-    frame:SetBackdropColor(0, 0, 0, 0.85)
-end
-
-
 local function createMainFrame()
-    local frame = CreateFrame("Frame", "PvPsterMainFrame", UIParent, "BackdropTemplate")
+    local frame = CreateFrame("Frame", "PvPsterMainFrame", UIParent)
     frame:SetSize(Constants.UI_DEFAULTS.width, Constants.UI_DEFAULTS.height)
     frame:SetFrameStrata("HIGH")
     frame:SetMovable(true)
@@ -253,19 +240,40 @@ local function createMainFrame()
         local point, _, _, x, y = self:GetPoint()
         DB:SaveUIState("position", { point = point, x = x, y = y })
     end)
-    applyBackdrop(frame)
+
+    PvPster.Theme:ApplyFrameBackground(frame)
 
     local pos = DB:GetUIState().position or { point = "CENTER", x = 0, y = 0 }
     frame:ClearAllPoints()
     frame:SetPoint(pos.point, UIParent, pos.point, pos.x, pos.y)
 
+    local palette = PvPster.Theme:GetCurrent()
+
     local title = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", frame, "TOP", 0, -12)
     title:SetText("PvPster")
+    title:SetTextColor(palette.text[1], palette.text[2], palette.text[3])
+    frame.titleText = title
 
-    local closeButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -3, -3)
+    -- Custom close button (flat, themed)
+    local closeButton = CreateFrame("Button", nil, frame)
+    closeButton:SetSize(24, 24)
+    closeButton:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -8)
+
+    local closeText = closeButton:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    closeText:SetPoint("CENTER")
+    closeText:SetText("×")
+    closeText:SetTextColor(palette.textSecondary[1], palette.textSecondary[2], palette.textSecondary[3])
+
+    closeButton:SetScript("OnEnter", function()
+        closeText:SetTextColor(palette.danger[1], palette.danger[2], palette.danger[3])
+    end)
+    closeButton:SetScript("OnLeave", function()
+        closeText:SetTextColor(palette.textSecondary[1], palette.textSecondary[2], palette.textSecondary[3])
+    end)
     closeButton:SetScript("OnClick", function() UI:Hide() end)
+    frame.closeButton = closeButton
+    frame.closeText = closeText
 
     table.insert(UISpecialFrames, "PvPsterMainFrame")
 
@@ -306,11 +314,34 @@ local function refreshScaleText()
 end
 
 
+local titleBarButtons = {}
+local themeButton
+
+
+local function makeThemedButton(parent, label)
+    local button = CreateFrame("Button", nil, parent)
+    button:SetSize(60, 22)
+
+    local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    text:SetPoint("CENTER")
+    text:SetText(label)
+    button:SetFontString(text)
+
+    PvPster.Theme:ApplyButton(button)
+    return button, text
+end
+
+
+local function refreshThemeButtonLabel()
+    if not themeButton then return end
+    local current = PvPster.Theme:GetCurrent()
+    themeButton:GetFontString():SetText(current.name)
+end
+
+
 local function createTitleBarButtons()
-    local syncButton = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
-    syncButton:SetSize(60, 20)
+    local syncButton = makeThemedButton(mainFrame, L["Sync"])
     syncButton:SetPoint("TOPLEFT", mainFrame, "TOPLEFT", 14, -10)
-    syncButton:SetText(L["Sync"])
     syncButton:SetScript("OnClick", function()
         PvPster.Collector:RunFullSync()
         local key = PvPster.DB:GetCharacterKey()
@@ -318,17 +349,17 @@ local function createTitleBarButtons()
             "|cff5599ff[PvPster]|r " .. string.format(L["SyncDone"], key)
         )
     end)
+    titleBarButtons.sync = syncButton
 
-    local resetButton = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
-    resetButton:SetSize(60, 20)
+    local resetButton = makeThemedButton(mainFrame, L["Reset"])
     resetButton:SetPoint("LEFT", syncButton, "RIGHT", 4, 0)
-    resetButton:SetText(L["Reset"])
     resetButton:SetScript("OnClick", function()
         StaticPopup_Show("PVPSTER_RESET_CONFIRM")
     end)
+    titleBarButtons.reset = resetButton
 
-    minimapButton = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
-    minimapButton:SetSize(110, 20)
+    minimapButton = makeThemedButton(mainFrame, L["Minimap"])
+    minimapButton:SetSize(110, 22)
     minimapButton:SetPoint("LEFT", resetButton, "RIGHT", 4, 0)
     minimapButton:SetScript("OnClick", function()
         if PvPster.Minimap and PvPster.Minimap.Toggle then
@@ -336,31 +367,43 @@ local function createTitleBarButtons()
             refreshMinimapButtonLabel()
         end
     end)
+    titleBarButtons.minimap = minimapButton
     refreshMinimapButtonLabel()
 
     -- Scale controls: [-] [value] [+]
-    local scaleMinus = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
-    scaleMinus:SetSize(20, 20)
+    local scaleMinus = makeThemedButton(mainFrame, "-")
+    scaleMinus:SetSize(22, 22)
     scaleMinus:SetPoint("LEFT", minimapButton, "RIGHT", 12, 0)
-    scaleMinus:SetText("-")
     scaleMinus:SetScript("OnClick", function()
         local current = DB:GetUIState().uiScale or 1.0
         UI:ApplyScale(current - 0.05)
     end)
+    titleBarButtons.scaleMinus = scaleMinus
 
     scaleValueText = mainFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     scaleValueText:SetPoint("LEFT", scaleMinus, "RIGHT", 6, 0)
     scaleValueText:SetWidth(36)
     scaleValueText:SetJustifyH("CENTER")
 
-    local scalePlus = CreateFrame("Button", nil, mainFrame, "UIPanelButtonTemplate")
-    scalePlus:SetSize(20, 20)
+    local scalePlus = makeThemedButton(mainFrame, "+")
+    scalePlus:SetSize(22, 22)
     scalePlus:SetPoint("LEFT", scaleValueText, "RIGHT", 6, 0)
-    scalePlus:SetText("+")
     scalePlus:SetScript("OnClick", function()
         local current = DB:GetUIState().uiScale or 1.0
         UI:ApplyScale(current + 0.05)
     end)
+    titleBarButtons.scalePlus = scalePlus
+
+    -- Theme cycle button
+    themeButton = makeThemedButton(mainFrame, "")
+    themeButton:SetSize(110, 22)
+    themeButton:SetPoint("LEFT", scalePlus, "RIGHT", 12, 0)
+    themeButton:SetScript("OnClick", function()
+        PvPster.Theme:CycleNext()
+        UI:ApplyTheme()
+    end)
+    titleBarButtons.theme = themeButton
+    refreshThemeButtonLabel()
 
     refreshScaleText()
 end
@@ -697,7 +740,7 @@ local function buildLayout()
     separator:SetPoint("TOPLEFT", headerFrame, "BOTTOMLEFT", 0, -2)
     separator:SetPoint("TOPRIGHT", headerFrame, "BOTTOMRIGHT", 0, -2)
     separator:SetHeight(1)
-    separator:SetColorTexture(1, 1, 1, 0.2)
+    headerFrame.separator = separator
 
     local scrollFrame = CreateFrame(
         "ScrollFrame",
@@ -733,6 +776,7 @@ function UI:Initialize()
     buildLayout()
     local savedScale = DB:GetUIState().uiScale or 1.0
     mainFrame:SetScale(savedScale)
+    UI:ApplyTheme()
     mainFrame:Hide()
     Logger:Log("UI", "Initialized")
 end
@@ -751,6 +795,57 @@ end
 
 function UI:RefreshMinimapButton()
     refreshMinimapButtonLabel()
+end
+
+
+function UI:ApplyTheme()
+    if not mainFrame then return end
+    local palette = PvPster.Theme:GetCurrent()
+
+    PvPster.Theme:ApplyFrameBackground(mainFrame, palette)
+
+    if mainFrame.titleText then
+        mainFrame.titleText:SetTextColor(palette.text[1], palette.text[2], palette.text[3])
+    end
+    if mainFrame.closeText then
+        mainFrame.closeText:SetTextColor(
+            palette.textSecondary[1], palette.textSecondary[2], palette.textSecondary[3]
+        )
+    end
+
+    for _, button in pairs(titleBarButtons) do
+        PvPster.Theme:ApplyButton(button, palette)
+    end
+
+    refreshMinimapButtonLabel()
+    refreshThemeButtonLabel()
+
+    if headerFrame and headerFrame.separator then
+        headerFrame.separator:SetColorTexture(
+            palette.separator[1], palette.separator[2], palette.separator[3], palette.separator[4]
+        )
+    end
+
+    -- Row hover backgrounds use theme color
+    for _, row in pairs(rowPool) do
+        if row.bg then
+            row.bg:SetColorTexture(
+                palette.rowHover[1], palette.rowHover[2], palette.rowHover[3], palette.rowHover[4]
+            )
+        end
+    end
+
+    if scaleValueText then
+        scaleValueText:SetTextColor(palette.text[1], palette.text[2], palette.text[3])
+    end
+    if footerSyncText then
+        footerSyncText:SetTextColor(palette.textDim[1], palette.textDim[2], palette.textDim[3])
+    end
+    if emptyText then
+        emptyText:SetTextColor(palette.textSecondary[1], palette.textSecondary[2], palette.textSecondary[3])
+    end
+
+    UI:Refresh()
 end
 
 

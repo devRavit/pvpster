@@ -42,6 +42,7 @@ local function defaultStorage()
             minimapVisible = true,
             minimapAngle = 225,
             uiScale = 1.0,
+            theme = "github",
         },
     }
 end
@@ -85,6 +86,9 @@ function DB:Initialize()
         end
         if _G.PvPsterDB.ui.uiScale == nil then
             _G.PvPsterDB.ui.uiScale = 1.0
+        end
+        if _G.PvPsterDB.ui.theme == nil then
+            _G.PvPsterDB.ui.theme = "github"
         end
         migrate(_G.PvPsterDB)
     end
