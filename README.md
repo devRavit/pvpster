@@ -1,6 +1,8 @@
 # PvPster
 
-> Account-wide PvP tracker for World of Warcraft Midnight (12.0.5)
+[![CurseForge](https://img.shields.io/badge/CurseForge-PvPster-F16436?logo=curseforge&logoColor=white)](https://www.curseforge.com/wow/addons/pvpster)
+
+> Account-wide PvP tracker for World of Warcraft Midnight (12.0.5+)
 > 계정 내 모든 캐릭터의 PvP 현황을 한눈에
 
 PvPster는 한 계정에 여러 캐릭을 굴리는 PvP 유저를 위한 트래커 애드온입니다.
@@ -30,7 +32,13 @@ WoW 클라이언트 재시작 또는 `/reload`.
 
 ### CurseForge
 
-준비 중.
+[CurseForge 페이지](https://www.curseforge.com/wow/addons/pvpster) 또는 [CurseForge App](https://www.curseforge.com/download/app)에서 설치.
+
+```
+Search "PvPster" → Install
+```
+
+WowUp, WoWInterface 등 CurseForge 미러를 지원하는 매니저 모두 사용 가능.
 
 ## 사용법
 
