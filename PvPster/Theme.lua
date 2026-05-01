@@ -19,88 +19,29 @@ local Theme = {}
 PvPster.Theme = Theme
 
 
-local THEMES = {
-    ["github"] = {
-        key = "github",
-        name = "GitHub Dark",
-        background     = { 13/255,  17/255,  23/255, 0.97 },
-        headerBg       = { 22/255,  27/255,  34/255, 1.0  },
-        border         = { 48/255,  54/255,  61/255, 1.0  },
-        separator      = { 48/255,  54/255,  61/255, 0.6  },
-        rowHover       = { 1.0,     1.0,     1.0,    0.04 },
-        rowAlt         = { 1.0,     1.0,     1.0,    0.02 },
-        text           = { 201/255, 209/255, 217/255, 1.0 },
-        textSecondary  = { 139/255, 148/255, 158/255, 1.0 },
-        textDim        = { 110/255, 118/255, 129/255, 1.0 },
-        accent         = { 88/255,  166/255, 255/255, 1.0 },
-        accentDim      = { 88/255,  166/255, 255/255, 0.6 },
-        success        = { 86/255,  211/255, 100/255, 1.0 },
-        warning        = { 219/255, 109/255,  40/255, 1.0 },
-        danger         = { 248/255,  81/255,  73/255, 1.0 },
-        buttonBg       = { 33/255,  38/255,  45/255, 1.0  },
-        buttonBgHover  = { 48/255,  54/255,  61/255, 1.0  },
-    },
-    ["discord"] = {
-        key = "discord",
-        name = "Discord",
-        background     = { 47/255,  49/255,  54/255, 0.98 },
-        headerBg       = { 32/255,  34/255,  37/255, 1.0  },
-        border         = { 24/255,  25/255,  28/255, 1.0  },
-        separator      = { 60/255,  62/255,  68/255, 0.6  },
-        rowHover       = { 1.0,     1.0,     1.0,    0.06 },
-        rowAlt         = { 1.0,     1.0,     1.0,    0.02 },
-        text           = { 220/255, 221/255, 222/255, 1.0 },
-        textSecondary  = { 185/255, 187/255, 190/255, 1.0 },
-        textDim        = { 142/255, 146/255, 151/255, 1.0 },
-        accent         = { 88/255,  101/255, 242/255, 1.0 },
-        accentDim      = { 88/255,  101/255, 242/255, 0.6 },
-        success        = { 87/255,  242/255, 135/255, 1.0 },
-        warning        = { 254/255, 231/255,  92/255, 1.0 },
-        danger         = { 237/255,  66/255,  69/255, 1.0 },
-        buttonBg       = { 79/255,  84/255,  92/255, 1.0  },
-        buttonBgHover  = { 96/255, 101/255, 110/255, 1.0  },
-    },
+local PALETTE = {
+    name = "GitHub Dark",
+    background     = { 13/255,  17/255,  23/255, 0.97 },
+    headerBg       = { 22/255,  27/255,  34/255, 1.0  },
+    border         = { 48/255,  54/255,  61/255, 1.0  },
+    separator      = { 48/255,  54/255,  61/255, 0.6  },
+    rowHover       = { 1.0,     1.0,     1.0,    0.04 },
+    rowAlt         = { 1.0,     1.0,     1.0,    0.02 },
+    text           = { 201/255, 209/255, 217/255, 1.0 },
+    textSecondary  = { 139/255, 148/255, 158/255, 1.0 },
+    textDim        = { 110/255, 118/255, 129/255, 1.0 },
+    accent         = { 88/255,  166/255, 255/255, 1.0 },
+    accentDim      = { 88/255,  166/255, 255/255, 0.6 },
+    success        = { 86/255,  211/255, 100/255, 1.0 },
+    warning        = { 219/255, 109/255,  40/255, 1.0 },
+    danger         = { 248/255,  81/255,  73/255, 1.0 },
+    buttonBg       = { 33/255,  38/255,  45/255, 1.0  },
+    buttonBgHover  = { 48/255,  54/255,  61/255, 1.0  },
 }
 
 
-local THEME_ORDER = { "github", "discord" }
-
-
 function Theme:GetCurrent()
-    if not PvPster.DB then return THEMES["github"] end
-    local key = PvPster.DB:GetUIState().theme or "github"
-    return THEMES[key] or THEMES["github"]
-end
-
-
-function Theme:Get(key)
-    return THEMES[key]
-end
-
-
-function Theme:Set(key)
-    if not THEMES[key] then return false end
-    PvPster.DB:SaveUIState("theme", key)
-    return true
-end
-
-
-function Theme:CycleNext()
-    local current = (PvPster.DB:GetUIState().theme) or "github"
-    for index, key in ipairs(THEME_ORDER) do
-        if key == current then
-            local nextKey = THEME_ORDER[index + 1] or THEME_ORDER[1]
-            self:Set(nextKey)
-            return THEMES[nextKey]
-        end
-    end
-    self:Set(THEME_ORDER[1])
-    return THEMES[THEME_ORDER[1]]
-end
-
-
-function Theme:GetOrder()
-    return THEME_ORDER
+    return PALETTE
 end
 
 

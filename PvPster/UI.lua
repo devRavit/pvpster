@@ -315,7 +315,6 @@ end
 
 
 local titleBarButtons = {}
-local themeButton
 
 
 local function makeThemedButton(parent, label)
@@ -329,13 +328,6 @@ local function makeThemedButton(parent, label)
 
     PvPster.Theme:ApplyButton(button)
     return button, text
-end
-
-
-local function refreshThemeButtonLabel()
-    if not themeButton then return end
-    local current = PvPster.Theme:GetCurrent()
-    themeButton:GetFontString():SetText(current.name)
 end
 
 
@@ -393,17 +385,6 @@ local function createTitleBarButtons()
         UI:ApplyScale(current + 0.05)
     end)
     titleBarButtons.scalePlus = scalePlus
-
-    -- Theme cycle button
-    themeButton = makeThemedButton(mainFrame, "")
-    themeButton:SetSize(110, 22)
-    themeButton:SetPoint("LEFT", scalePlus, "RIGHT", 12, 0)
-    themeButton:SetScript("OnClick", function()
-        PvPster.Theme:CycleNext()
-        UI:ApplyTheme()
-    end)
-    titleBarButtons.theme = themeButton
-    refreshThemeButtonLabel()
 
     refreshScaleText()
 end
@@ -818,7 +799,6 @@ function UI:ApplyTheme()
     end
 
     refreshMinimapButtonLabel()
-    refreshThemeButtonLabel()
 
     if headerFrame and headerFrame.separator then
         headerFrame.separator:SetColorTexture(
