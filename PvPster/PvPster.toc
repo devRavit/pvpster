@@ -1,9 +1,10 @@
 ## Interface: 120005
 ## Title: PvPster
-## Notes: Account-wide PvP tracker — currencies, ratings, item levels at a glance
+## Notes: Account-wide PvP tracker — view conquest, honor, ratings, and item levels for every character at a glance.
 ## Notes-koKR: 계정 PvP 트래커 — 정복/명예 점수, 레이팅, 아이템 레벨을 한눈에
 ## Author: RAVIT
-## Version: 0.0.1
+## Version: @project-version@
+## X-License: All Rights Reserved
 ## SavedVariables: PvPsterDB, PvPsterLogs
 ## IconTexture: Interface\Icons\Achievement_Bg_Winsoa
 

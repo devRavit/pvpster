@@ -1,0 +1,17 @@
+package-as: PvPster
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - .github
+  - .gitignore
+  - .gitattributes
+  - .claudeignore
+  - .vscode
+  - .idea
+  - CLAUDE.md
+  - README.md
+  - docs
+  - setup-junctions.ps1
