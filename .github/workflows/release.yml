@@ -1,0 +1,23 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger CurseForge deploy via deployment-hub
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_ADDONS }}
+          repository: devRavit/deployment-hub
+          event-type: deploy-curseforge
+          client-payload: |
+            {
+              "project": "pvpster",
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}"
+            }
