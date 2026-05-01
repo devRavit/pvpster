@@ -12,7 +12,7 @@ jobs:
       - name: Trigger CurseForge deploy via deployment-hub
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT_ADDONS }}
+          token: ${{ secrets.PAT }}
           repository: devRavit/deployment-hub
           event-type: deploy-curseforge
           client-payload: |
