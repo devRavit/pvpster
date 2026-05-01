@@ -11,6 +11,7 @@ Localization.lua
 Constants.lua
 Logger.lua
 DB.lua
+Theme.lua
 Collector.lua
 UI.lua
 Minimap.lua

@@ -90,6 +90,20 @@ local commandHandlers = {
         PvPster.UI:ApplyScale(value)
         chatPrint(string.format(L["ScaleSet"], value))
     end,
+    theme = function(arg)
+        if arg == "" or not arg then
+            PvPster.Theme:CycleNext()
+        else
+            local lower = arg:lower()
+            if not PvPster.Theme:Get(lower) then
+                chatPrint("Unknown theme. Available: github, discord")
+                return
+            end
+            PvPster.Theme:Set(lower)
+        end
+        PvPster.UI:ApplyTheme()
+        chatPrint(string.format(L["ThemeSet"], PvPster.Theme:GetCurrent().name))
+    end,
     help = showHelp,
 }
 

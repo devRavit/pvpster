@@ -87,6 +87,8 @@ LOCALES["enUS"] = {
     ["ScaleSet"] = "Scale set to %.2f",
     ["Minimap"] = "Minimap",
     ["ResetConfirmDialog"] = "Wipe all PvPster character data?",
+    ["Theme"] = "Theme",
+    ["ThemeSet"] = "Theme: %s",
 
     -- Equipment slot labels
     ["Slot_Head"] = "Head",
@@ -167,6 +169,8 @@ LOCALES["koKR"] = {
     ["ScaleSet"] = "크기 %.2f 적용",
     ["Minimap"] = "미니맵",
     ["ResetConfirmDialog"] = "PvPster 캐릭터 데이터를 전부 삭제할까요?",
+    ["Theme"] = "테마",
+    ["ThemeSet"] = "테마: %s",
 
     ["Slot_Head"] = "머리",
     ["Slot_Neck"] = "목",
