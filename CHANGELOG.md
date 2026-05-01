@@ -12,5 +12,6 @@
 - CLAUDE.md (개발 가이드라인)
 - BigWigs Packager 빌드 셋업 (`.pkgmeta`, TOC `Version` 토큰화, 영문 Notes 정리)
 - 리포 구조 평탄화: `PvPster/*` 파일들을 리포 루트로 이동 (BigWigs Packager 표준 단일 모듈 구조 준수). `setup-junctions.ps1`은 리포 루트 자체를 `WoW\AddOns\PvPster`로 symlink 하도록 수정.
+- TOC에 `## X-Curse-Project-ID: 1530687` 추가 (CurseForge 프로젝트 https://www.curseforge.com/wow/addons/pvpster 등록 완료)
 
 ---

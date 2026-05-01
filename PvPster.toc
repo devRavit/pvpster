@@ -5,6 +5,7 @@
 ## Author: RAVIT
 ## Version: @project-version@
 ## X-License: All Rights Reserved
+## X-Curse-Project-ID: 1530687
 ## SavedVariables: PvPsterDB, PvPsterLogs
 ## IconTexture: Interface\Icons\Achievement_Bg_Winsoa
 
