@@ -11,5 +11,6 @@
 - setup-junctions.ps1 (Windows 심볼릭 링크 설치 스크립트)
 - CLAUDE.md (개발 가이드라인)
 - BigWigs Packager 빌드 셋업 (`.pkgmeta`, TOC `Version` 토큰화, 영문 Notes 정리)
+- 리포 구조 평탄화: `PvPster/*` 파일들을 리포 루트로 이동 (BigWigs Packager 표준 단일 모듈 구조 준수). `setup-junctions.ps1`은 리포 루트 자체를 `WoW\AddOns\PvPster`로 symlink 하도록 수정.
 
 ---
