@@ -43,9 +43,12 @@ local footerSyncText
 local emptyText
 local scaleValueText
 local minimapButton
+local languageButton
+local languagePopup
 
 local rowPool = {}
 local headerButtons = {}
+local languageItems = {}
 local clockTicker
 
 
@@ -314,6 +317,129 @@ local function refreshScaleText()
 end
 
 
+-- The "currently checked" locale: use the user's saved preference if it
+-- names a supported locale, otherwise fall back to the resolved client
+-- locale. This is what the dropdown should put a checkmark next to so an
+-- unset preference still feels "selected" by default.
+local function getCheckedLocale()
+    local saved = DB:GetUIState().locale
+    local Localization = PvPster.Localization
+    if saved and saved ~= "auto" and Localization:IsSupported(saved) then
+        return saved
+    end
+    return Localization:GetClientLocale()
+end
+
+
+local function refreshLanguageButtonLabel()
+    if not languageButton then return end
+    local effective = getCheckedLocale()
+    local nativeName = PvPster.Localization:GetNativeName(effective)
+    languageButton:SetText(string.format("%s  %s  ▼", L["Language"], nativeName))
+end
+
+
+local function refreshLanguageItemChecks()
+    local checked = getCheckedLocale()
+    for _, item in ipairs(languageItems) do
+        if item.value == checked then
+            item.check:Show()
+        else
+            item.check:Hide()
+        end
+    end
+end
+
+
+local function createLanguagePopup()
+    local options = PvPster.Localization:GetSupportedLocales()
+    local palette = PvPster.Theme:GetCurrent()
+    local itemHeight = 22
+    local width = 130
+    local padding = 4
+
+    languagePopup = CreateFrame("Frame", "PvPsterLanguagePopup", mainFrame)
+    languagePopup:SetSize(width, padding * 2 + #options * itemHeight)
+    languagePopup:SetFrameStrata("DIALOG")
+    languagePopup:SetClampedToScreen(true)
+    languagePopup:EnableMouse(true)
+    PvPster.Theme:ApplyFrameBackground(languagePopup, palette)
+
+    for i, opt in ipairs(options) do
+        local item = CreateFrame("Button", nil, languagePopup)
+        item:SetSize(width - padding * 2, itemHeight)
+        item:SetPoint(
+            "TOPLEFT",
+            languagePopup, "TOPLEFT",
+            padding,
+            -(padding + (i - 1) * itemHeight)
+        )
+
+        local hover = item:CreateTexture(nil, "BACKGROUND")
+        hover:SetAllPoints(item)
+        hover:SetColorTexture(
+            palette.rowHover[1], palette.rowHover[2],
+            palette.rowHover[3], palette.rowHover[4]
+        )
+        hover:Hide()
+
+        local check = item:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        check:SetPoint("LEFT", item, "LEFT", 6, 0)
+        check:SetText("✓")
+        check:SetTextColor(palette.accent[1], palette.accent[2], palette.accent[3])
+        check:Hide()
+
+        local label = item:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetPoint("LEFT", item, "LEFT", 22, 0)
+        label:SetText(opt.nativeName)
+        label:SetTextColor(palette.text[1], palette.text[2], palette.text[3])
+
+        item:SetScript("OnEnter", function() hover:Show() end)
+        item:SetScript("OnLeave", function() hover:Hide() end)
+        item:SetScript("OnClick", function()
+            DB:SaveUIState("locale", opt.key)
+            PvPster.Localization:Apply(opt.key)
+            UI:RefreshLocalizedText()
+            languagePopup:Hide()
+        end)
+
+        item.value = opt.key
+        item.check = check
+        item.label = label
+        languageItems[i] = item
+    end
+
+    -- Close on click outside the popup or its trigger button. WoW fires
+    -- GLOBAL_MOUSE_DOWN on press, before the trigger button's OnClick (release),
+    -- so toggling the popup off via the trigger still works correctly.
+    languagePopup:RegisterEvent("GLOBAL_MOUSE_DOWN")
+    languagePopup:SetScript("OnEvent", function(self, event)
+        if event ~= "GLOBAL_MOUSE_DOWN" then return end
+        if not self:IsShown() then return end
+        if self:IsMouseOver() then return end
+        if languageButton and languageButton:IsMouseOver() then return end
+        self:Hide()
+    end)
+
+    languagePopup:Hide()
+end
+
+
+local function toggleLanguagePopup()
+    if not languagePopup then
+        createLanguagePopup()
+    end
+    if languagePopup:IsShown() then
+        languagePopup:Hide()
+        return
+    end
+    languagePopup:ClearAllPoints()
+    languagePopup:SetPoint("TOPLEFT", languageButton, "BOTTOMLEFT", 0, -2)
+    refreshLanguageItemChecks()
+    languagePopup:Show()
+end
+
+
 local titleBarButtons = {}
 
 
@@ -362,10 +488,17 @@ local function createTitleBarButtons()
     titleBarButtons.minimap = minimapButton
     refreshMinimapButtonLabel()
 
+    languageButton = makeThemedButton(mainFrame, "")
+    languageButton:SetSize(140, 22)
+    languageButton:SetPoint("LEFT", minimapButton, "RIGHT", 4, 0)
+    languageButton:SetScript("OnClick", toggleLanguagePopup)
+    titleBarButtons.language = languageButton
+    refreshLanguageButtonLabel()
+
     -- Scale controls: [-] [value] [+]
     local scaleMinus = makeThemedButton(mainFrame, "-")
     scaleMinus:SetSize(22, 22)
-    scaleMinus:SetPoint("LEFT", minimapButton, "RIGHT", 12, 0)
+    scaleMinus:SetPoint("LEFT", languageButton, "RIGHT", 12, 0)
     scaleMinus:SetScript("OnClick", function()
         local current = DB:GetUIState().uiScale or 1.0
         UI:ApplyScale(current - 0.05)
@@ -790,6 +923,29 @@ function UI:RefreshMinimapButton()
 end
 
 
+-- Refresh statically-set localized strings so a language change applies
+-- without /reload. Tooltips, header labels, and footer text already pull
+-- L on each render, so they aren't touched here.
+function UI:RefreshLocalizedText()
+    if titleBarButtons.sync and titleBarButtons.sync:GetFontString() then
+        titleBarButtons.sync:GetFontString():SetText(L["Sync"])
+    end
+    if titleBarButtons.reset and titleBarButtons.reset:GetFontString() then
+        titleBarButtons.reset:GetFontString():SetText(L["Reset"])
+    end
+    refreshMinimapButtonLabel()
+    refreshLanguageButtonLabel()
+    refreshLanguageItemChecks()
+    if emptyText then
+        emptyText:SetText(L["NoCharactersTitle"] .. "\n\n" .. L["NoCharactersBody"])
+    end
+    if StaticPopupDialogs and StaticPopupDialogs["PVPSTER_RESET_CONFIRM"] then
+        StaticPopupDialogs["PVPSTER_RESET_CONFIRM"].text = L["ResetConfirmDialog"]
+    end
+    UI:Refresh()
+end
+
+
 function UI:ApplyTheme()
     if not mainFrame then return end
     local palette = PvPster.Theme:GetCurrent()
@@ -834,6 +990,18 @@ function UI:ApplyTheme()
     end
     if emptyText then
         emptyText:SetTextColor(palette.textSecondary[1], palette.textSecondary[2], palette.textSecondary[3])
+    end
+
+    if languagePopup then
+        PvPster.Theme:ApplyFrameBackground(languagePopup, palette)
+        for _, item in ipairs(languageItems) do
+            if item.label then
+                item.label:SetTextColor(palette.text[1], palette.text[2], palette.text[3])
+            end
+            if item.check then
+                item.check:SetTextColor(palette.accent[1], palette.accent[2], palette.accent[3])
+            end
+        end
     end
 
     UI:Refresh()

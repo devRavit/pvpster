@@ -8,6 +8,8 @@ local _, PvPster = ...
 
 -- Lua API Localization
 local string = string
+local table = table
+local ipairs = ipairs
 
 -- WoW API Localization
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
@@ -34,7 +36,23 @@ local function showHelp()
     chatPrint("  /pvpster sync — " .. L["Sync"])
     chatPrint("  /pvpster reset — " .. L["Reset"])
     chatPrint("  /pvpster debug on|off")
+    chatPrint("  /pvpster lang [auto|enUS|koKR] — " .. L["Language"])
     chatPrint("  /pvpster help")
+end
+
+
+-- WoW locale codes are case-sensitive (enUS, koKR). Accept lowercase input
+-- for ergonomics and normalize back to the canonical casing.
+local LOCALE_ALIASES = {
+    auto = "auto",
+    enus = "enUS",
+    kokr = "koKR",
+}
+
+
+local function normalizeLocaleArg(input)
+    local lowered = (input or ""):lower()
+    return LOCALE_ALIASES[lowered] or input
 end
 
 
@@ -89,6 +107,33 @@ local commandHandlers = {
         end
         PvPster.UI:ApplyScale(value)
         chatPrint(string.format(L["ScaleSet"], value))
+    end,
+    lang = function(arg)
+        local Localization = PvPster.Localization
+        if arg == "" then
+            local saved = PvPster.DB:GetUIState().locale or "auto"
+            local effective = Localization:Resolve(saved)
+            chatPrint(string.format(L["LocaleCurrent"], saved, effective))
+            local supported = { "auto" }
+            for _, entry in ipairs(Localization:GetSupportedLocales()) do
+                table.insert(supported, entry.key)
+            end
+            chatPrint(L["LocaleSupported"] .. " " .. table.concat(supported, ", "))
+            return
+        end
+
+        local normalized = normalizeLocaleArg(arg)
+        if not Localization:IsSupported(normalized) then
+            chatPrint(L["LocaleUnsupported"])
+            return
+        end
+
+        PvPster.DB:SaveUIState("locale", normalized)
+        Localization:Apply(normalized)
+        if PvPster.UI and PvPster.UI.RefreshLocalizedText then
+            PvPster.UI:RefreshLocalizedText()
+        end
+        chatPrint(string.format(L["LocaleSet"], normalized))
     end,
     help = showHelp,
 }

@@ -1,6 +1,14 @@
 --[[
     PvPster Localization
     enUS (default) + koKR
+
+    Resolution order:
+      1. User preference saved in DB (ui.locale) — explicit value if supported
+      2. Client locale (GetLocale()) — used when preference is nil/"auto"
+      3. enUS — fallback for any client locale we do not translate
+
+    The L table is mutated in-place when locale changes so existing
+    `local L = PvPster.L` captures in other modules stay valid.
 ]]
 
 local _, PvPster = ...
@@ -18,7 +26,21 @@ local L = {}
 PvPster.L = L
 
 
+local Localization = {}
+PvPster.Localization = Localization
+
+
+local DEFAULT_LOCALE = "enUS"
+local AUTO_KEY = "auto"
+
 local LOCALES = {}
+
+-- Listed in display order for UI dropdowns. Native names so each option
+-- reads correctly regardless of the currently active locale.
+local SUPPORTED_LOCALES = {
+    { key = "enUS", nativeName = "English" },
+    { key = "koKR", nativeName = "한국어" },
+}
 
 
 LOCALES["enUS"] = {
@@ -89,6 +111,14 @@ LOCALES["enUS"] = {
     ["ResetConfirmDialog"] = "Wipe all PvPster character data?",
     ["Theme"] = "Theme",
     ["ThemeSet"] = "Theme: %s",
+
+    -- Language
+    ["Language"] = "Language",
+    ["LocaleAuto"] = "Auto",
+    ["LocaleCurrent"] = "Language: %s (effective: %s)",
+    ["LocaleSupported"] = "Supported:",
+    ["LocaleSet"] = "Language set to %s.",
+    ["LocaleUnsupported"] = "Unsupported language. Use auto, enUS, or koKR.",
 
     -- Equipment slot labels
     ["Slot_Head"] = "Head",
@@ -172,6 +202,13 @@ LOCALES["koKR"] = {
     ["Theme"] = "테마",
     ["ThemeSet"] = "테마: %s",
 
+    ["Language"] = "언어",
+    ["LocaleAuto"] = "자동",
+    ["LocaleCurrent"] = "언어 설정: %s (적용: %s)",
+    ["LocaleSupported"] = "지원 목록:",
+    ["LocaleSet"] = "언어를 %s 로 변경했습니다.",
+    ["LocaleUnsupported"] = "지원하지 않는 언어입니다. auto, enUS, koKR 중에서 선택하세요.",
+
     ["Slot_Head"] = "머리",
     ["Slot_Neck"] = "목",
     ["Slot_Shoulder"] = "어깨",
@@ -191,14 +228,84 @@ LOCALES["koKR"] = {
 }
 
 
-local locale = GetLocale and GetLocale() or "enUS"
-local source = LOCALES[locale] or LOCALES["enUS"]
-
-for key, value in pairs(source) do
-    L[key] = value
-end
-
--- Fallback to key when missing
 setmetatable(L, {
     __index = function(_, key) return key end,
 })
+
+
+local function clearTable(target)
+    for key in pairs(target) do
+        target[key] = nil
+    end
+end
+
+
+local function getClientLocale()
+    local raw = GetLocale and GetLocale() or DEFAULT_LOCALE
+    if LOCALES[raw] then return raw end
+    return DEFAULT_LOCALE
+end
+
+
+local function resolveLocale(preference)
+    if preference == nil or preference == AUTO_KEY then
+        return getClientLocale()
+    end
+    if LOCALES[preference] then
+        return preference
+    end
+    return getClientLocale()
+end
+
+
+local function applyLocale(localeKey)
+    clearTable(L)
+    local source = LOCALES[localeKey] or LOCALES[DEFAULT_LOCALE]
+    for key, value in pairs(source) do
+        L[key] = value
+    end
+end
+
+
+function Localization:GetClientLocale()
+    return getClientLocale()
+end
+
+
+function Localization:GetSupportedLocales()
+    return SUPPORTED_LOCALES
+end
+
+
+function Localization:IsSupported(localeKey)
+    if localeKey == AUTO_KEY then return true end
+    return LOCALES[localeKey] ~= nil
+end
+
+
+function Localization:Resolve(preference)
+    return resolveLocale(preference)
+end
+
+
+function Localization:Apply(preference)
+    local effective = resolveLocale(preference)
+    applyLocale(effective)
+    return effective
+end
+
+
+function Localization:GetNativeName(localeKey)
+    for _, entry in pairs(SUPPORTED_LOCALES) do
+        if entry.key == localeKey then
+            return entry.nativeName
+        end
+    end
+    return localeKey
+end
+
+
+-- Apply client locale at file-load time so other modules capturing L
+-- via `local L = PvPster.L` immediately see populated strings. The saved
+-- preference is re-applied during ADDON_LOADED once DB is ready.
+applyLocale(getClientLocale())

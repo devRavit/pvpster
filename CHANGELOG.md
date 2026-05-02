@@ -1,5 +1,19 @@
 # Changelog
 
+## v20260502.3
+`2026.05.02 (KST)`
+
+언어 설정 기능 추가.
+
+- `Localization` 모듈 신규 — `Apply(preference)` API, L 테이블 in-place 갱신으로 다른 모듈의 `local L = PvPster.L` 참조 유지
+- DB `ui.locale` 추가, default `"auto"` (저장값 없거나 `"auto"`면 `GetLocale()` 따라감)
+- 클라이언트 locale이 enUS/koKR 외(예: deDE, zhCN)면 enUS로 fallback
+- `/pvpster lang [auto|enUS|koKR]` 슬래시 명령
+- 메인 UI 타이틀 바 미니맵 버튼 옆에 select 형태 언어 드롭다운 — 저장값 없으면 클라이언트 locale에 해당하는 옵션이 체크된 상태로 표시
+- 언어 변경 시 정적으로 박힌 라벨(Sync/Reset/empty/리셋 다이얼로그)도 hot-swap (별도 `/reload` 불필요)
+
+---
+
 ## v20260502.2
 `2026.05.02 (KST)`
 
