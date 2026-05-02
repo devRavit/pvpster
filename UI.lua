@@ -826,7 +826,12 @@ local function fillRow(row, character, index)
     local conquest = currency.conquest
     if conquest then
         local earned = conquest.totalEarned or 0
-        local max = conquest.maxQuantity or 0
+        -- Conquest cap is account-shared (same weekly cap for every character),
+        -- but alts that haven't logged in recently carry a stale maxQuantity.
+        -- Trust the current character's value as the source of truth so alts
+        -- show "capped" the moment their totalEarned matches this week's cap.
+        local sharedMax = getCurrencyMaxForCurrentCharacter("conquest")
+        local max = sharedMax or conquest.maxQuantity or 0
         if max > 0 and earned >= max then
             row.texts.conquest:SetTextColor(0.4, 0.7, 1)   -- blue: capped
         else
