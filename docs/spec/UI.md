@@ -20,6 +20,10 @@ PvPsterMainFrame (Frame, BackdropTemplate)
 ├── TitleBar (Frame)
 │   ├── TitleText (FontString)
 │   ├── CloseButton (Button)
+│   ├── SyncButton / ResetButton / MinimapButton (themed)
+│   ├── LanguageButton (themed) → PvPsterLanguagePopup (DIALOG strata)
+│   │   └── 언어 select — 저장값 없으면 클라이언트 locale에 ✓ 표시
+│   ├── ScaleControls (- / value / +)
 │   └── (드래그 핸들로 사용)
 ├── HeaderRow (Frame)
 │   └── ColumnHeader[] (Button) — 클릭 시 정렬

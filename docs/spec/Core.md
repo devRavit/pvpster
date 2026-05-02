@@ -17,7 +17,8 @@
 
 ```lua
 _G.PvPster = {
-    L = {},              -- Localization
+    L = {},              -- Localization 문자열 테이블 (mutate-in-place)
+    Localization = {},   -- Localization 모듈 (Apply / Resolve / GetClientLocale)
     DB = {},             -- DB 모듈
     Collector = {},      -- 데이터 수집
     UI = {},             -- UI 창
@@ -31,10 +32,12 @@ _G.PvPster = {
 ```
 ADDON_LOADED("PvPster")
     └─ Logger:Initialize()
-    └─ DB:Initialize()              -- SavedVariables 마이그레이션
-    └─ Collector:Initialize()       -- 이벤트 등록
-    └─ UI:Initialize()              -- 프레임 생성 (숨김 상태)
-    └─ Slash:Initialize()           -- /pvpster 등록
+    └─ DB:Initialize()                              -- SavedVariables 마이그레이션
+    └─ Localization:Apply(DB:GetUIState().locale)   -- 저장된 언어 설정 적용 (없으면 client locale)
+    └─ Collector:Initialize()                       -- 이벤트 등록
+    └─ UI:Initialize()                              -- 프레임 생성 (숨김 상태)
+    └─ Minimap:Initialize()                         -- 미니맵 버튼
+    └─ Slash:Initialize()                           -- /pvpster 등록
 
 PLAYER_LOGIN
     └─ RequestRatedInfo()           -- 레이팅 캐시 워밍
@@ -155,6 +158,11 @@ PvPsterDB = {
         sortColumn = "name",             -- 정렬 컬럼 키
         sortDirection = "asc",           -- "asc" / "desc"
         visible = false,
+        minimapVisible = true,
+        minimapAngle = 225,
+        uiScale = 1.0,
+        theme = "github",
+        locale = "auto",                 -- "auto" | "enUS" | "koKR" — auto는 GetLocale() 따라감
     },
 }
 ```
@@ -260,7 +268,26 @@ PvPsterLogs = {
 | `/pvpster reset` | DB 전체 초기화 (확인 프롬프트) |
 | `/pvpster remove <character>` | 특정 캐릭터 삭제 |
 | `/pvpster debug on/off` | 디버그 로그 토글 |
+| `/pvpster lang [auto\|enUS\|koKR]` | 언어 설정 조회/변경 (no-arg = 현재 설정 + 지원 목록 출력) |
 | `/pvpster help` | 도움말 |
+
+### Localization 모듈
+
+```lua
+PvPster.Localization:Apply(preference)        -- L 테이블 in-place 갱신, effective locale 반환
+PvPster.Localization:Resolve(preference)      -- 적용 없이 effective locale 만 계산
+PvPster.Localization:GetClientLocale()        -- GetLocale() 결과를 지원 locale 로 정규화
+PvPster.Localization:GetSupportedLocales()    -- {{ key, nativeName }, ...} 표시 순서대로
+PvPster.Localization:GetNativeName(localeKey) -- 옵션 라벨용 native 이름
+PvPster.Localization:IsSupported(localeKey)   -- "auto" 도 true
+```
+
+**Resolution 우선순위**
+1. 사용자 저장값 (`ui.locale`) 이 지원되는 locale 키면 그대로 사용
+2. 저장값이 nil 또는 `"auto"` 이면 `GetLocale()` 결과
+3. 위 두 단계로 얻은 값이 미지원 locale (예: deDE, zhCN) 이면 enUS fallback
+
+**핵심 규칙**: L 테이블은 절대 교체하지 않고 mutate-in-place. 다른 모듈이 파일 로드 시점에 `local L = PvPster.L` 로 reference 캡처해두기 때문.
 
 ### 메시지 출력
 

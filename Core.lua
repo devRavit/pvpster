@@ -32,6 +32,7 @@ handlers.ADDON_LOADED = function(loadedName)
 
     PvPster.Logger:Initialize()
     PvPster.DB:Initialize()
+    PvPster.Localization:Apply(PvPster.DB:GetUIState().locale)
     PvPster.Collector:Initialize()
     PvPster.UI:Initialize()
     PvPster.Minimap:Initialize()
