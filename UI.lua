@@ -690,7 +690,18 @@ local function fillRow(row, character, index)
     row.texts.honor:SetTextColor(0.95, 0.95, 0.95)
 
     row.texts.conquest:SetText(formatConquest(currency.conquest))
-    row.texts.conquest:SetTextColor(1, 0.6, 0.6)
+    local conquest = currency.conquest
+    if conquest then
+        local earned = conquest.totalEarned or 0
+        local max = conquest.maxQuantity or 0
+        if max > 0 and earned >= max then
+            row.texts.conquest:SetTextColor(0.4, 0.7, 1)   -- blue: capped
+        else
+            row.texts.conquest:SetTextColor(1, 0.4, 0.4)   -- red: below cap
+        end
+    else
+        row.texts.conquest:SetTextColor(0.6, 0.6, 0.6)
+    end
 
     local ratings = character.ratings or {}
     row.texts.bracket_1:SetText(formatRating(ratings[1]))

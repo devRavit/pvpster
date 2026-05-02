@@ -107,3 +107,35 @@ Constants.EQUIPMENT_DEBOUNCE = 0.5
 
 -- Item class ID for gems (Enum.ItemClass.Gem in modern API)
 Constants.ITEM_CLASS_GEM = (Enum and Enum.ItemClass and Enum.ItemClass.Gem) or 3
+
+
+-- Enchant ID → stat description.
+-- Enchant ID is at position 2 of the item link payload and is locale-independent.
+-- Sources: Wowhead live 12.0.5, method.gg (2026-03-02), wow-professions.com,
+--          icy-veins.com (2026-04-21).
+-- Wowhead tooltip stat magnitudes are JS-rendered and cannot be scraped
+-- automatically; "+?" placeholders below mean the stat *type* is verified but
+-- the exact magnitude needs an in-game tooltip check (or Wowhead with JS).
+-- Note: leg enchants (7937 etc.) are intentionally absent — Tailoring
+-- spellthreads / LW armor kits expose their stat values directly in the
+-- tooltip's "Enchanted:" line, so no override is needed for that slot.
+Constants.ENCHANT_STATS_BY_ID = {
+    -- ===== Enchanting (Midnight 12.0.5) =====
+    -- Ring (반지)
+    [7969] = "+? 특화",                       -- Zul'jin's Mastery (spell 1236060)
+
+    -- Shoulder (어깨) — Speed = 이동속도, NOT Haste
+    [7973] = "+? 이속",                       -- Akil'zon's Swiftness (spell 1236062)
+
+    -- Helm (머리) — Speed + Midnight skyriding charge effect outdoor
+    [7991] = "+? 이속",                       -- Empowered Blessing of Speed (spell 1236071)
+
+    -- Chest (가슴)
+    [8013] = "+? 지능 / +? 최대 마나",        -- Mark of the Magister (spell 1236082)
+
+    -- Boots (발)
+    [8019] = "+? 이속 / +? 체력",             -- Farstrider's Hunt (spell 1236085)
+
+    -- Weapon (무기) — proc-based
+    [8039] = "주문 적중 시 공허의 위력 부여", -- Acuity of the Ren'dorei (spell 1236095)
+}

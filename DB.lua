@@ -146,7 +146,9 @@ end
 
 
 function DB:Reset()
-    _G.PvPsterDB = defaultStorage()
+    -- Preserve UI preferences (window/minimap position, theme, scale, sort)
+    -- so users don't lose their layout each time they wipe character data.
+    _G.PvPsterDB.characters = {}
     Logger:Log("DB", "Reset")
 end
 

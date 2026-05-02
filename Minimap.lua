@@ -183,6 +183,15 @@ function MinimapModule:Initialize()
     applyPositionByAngle(minimapButton, getAngle())
     self:UpdateVisibility()
 
+    -- During ADDON_LOADED, Minimap:GetWidth() can return 0 because the frame
+    -- isn't fully sized yet. Re-apply once it's rendered so the saved angle
+    -- lands at the correct radius instead of the 80px fallback.
+    C_Timer.After(0.5, function()
+        if minimapButton then
+            applyPositionByAngle(minimapButton, getAngle())
+        end
+    end)
+
     Logger:Log("Minimap", "Initialized")
 end
 
