@@ -1,8 +1,13 @@
 package-as: PvPster
 
-# CurseForge per-release changelog: packager가 vN-1..vN 사이 git log로 자동 생성.
-# CHANGELOG.md는 GitHub 용 master log 로 별도 유지.
-# (예전 manual-changelog 사용 시 매 릴리즈마다 전체 히스토리가 반복 노출되는 문제 있었음)
+# CurseForge changelog: 매 릴리즈마다 RELEASE_NOTES.md 한 파일을 갱신해
+# user-facing 변경사항만 담는다. CHANGELOG.md는 GitHub 용 master log로 유지.
+# - 자동 git log 방식: 컨벤셔널 커밋/CI 노이즈가 그대로 노출돼 가독성 ↓
+# - 전체 CHANGELOG.md 사용: 매 릴리즈마다 전체 히스토리 반복 노출
+# - RELEASE_NOTES.md(현재 릴리즈만): 둘 다 회피
+manual-changelog:
+  filename: RELEASE_NOTES.md
+  markup-type: markdown
 
 ignore:
   - .github
