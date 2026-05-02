@@ -11,6 +11,7 @@
 - `/pvpster lang [auto|enUS|koKR]` 슬래시 명령
 - 메인 UI 타이틀 바 미니맵 버튼 옆에 select 형태 언어 드롭다운 — 저장값 없으면 클라이언트 locale에 해당하는 옵션이 체크된 상태로 표시
 - 언어 변경 시 정적으로 박힌 라벨(Sync/Reset/empty/리셋 다이얼로그)도 hot-swap (별도 `/reload` 불필요)
+- fix: 부캐 정복점수 cap 도달 색상 — 헤더/툴팁과 동일하게 현재 캐릭터의 maxQuantity를 공유 cap으로 사용해, 접속 안 한 부캐도 totalEarned가 이번 주 한도에 도달하면 파란색으로 표시
 
 ---
 
