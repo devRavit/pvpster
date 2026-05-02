@@ -1,0 +1,44 @@
+name: Auto Tag on main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    # Skip if the head commit is a merge that already carries a release tag,
+    # to avoid double-tagging when a tag is pushed manually before main moves.
+    if: ${{ !contains(github.event.head_commit.message, '[skip auto-tag]') }}
+
+    steps:
+      - name: Checkout (with PAT so subsequent tag push triggers release.yml)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT }}
+
+      - name: Compute next tag (v{YYYYMMDD-KST}.{N})
+        id: tag
+        run: |
+          DATE=$(TZ=Asia/Seoul date +%Y%m%d)
+          # Find highest existing N for today's date prefix.
+          LAST=$(git tag -l "v${DATE}.*" | sed "s/^v${DATE}\.//" | sort -n | tail -1)
+          if [ -z "$LAST" ]; then
+            N=1
+          else
+            N=$((LAST + 1))
+          fi
+          TAG="v${DATE}.${N}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Computed next tag: ${TAG}"
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
