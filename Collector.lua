@@ -10,6 +10,7 @@ local _, PvPster = ...
 -- Lua API Localization
 local string = string
 local ipairs = ipairs
+local table = table
 local time = time
 
 -- WoW API Localization
@@ -177,24 +178,51 @@ local function getEnchantNameFromItem(itemLink)
 end
 
 
+-- Item link payload format: |Hitem:itemID:enchantID:gem1:gem2:gem3:gem4:...
+-- Position 2 (1-indexed) holds the enchant ID, which is locale-independent.
+local function parseEnchantID(itemLink)
+    if not itemLink then return nil end
+    local payload = itemLink:match("|H[%w]+:([^|]+)|h")
+    if not payload then return nil end
+
+    local pos = 1
+    for part in payload:gmatch("([^:]*)") do
+        if pos == 2 then
+            local id = tonumber(part)
+            if id and id > 0 then return id end
+            return nil
+        end
+        pos = pos + 1
+    end
+    return nil
+end
+
+
 local function getGemStatText(gemLink)
     if not gemLink then return nil end
     local scanner = ensureScanner()
     scanner:ClearLines()
     scanner:SetHyperlink(gemLink)
 
-    -- Line 1 is the item name. Stats usually live on line 2 (sometimes line 3).
-    for i = 2, math.min(4, scanner:NumLines()) do
+    -- Stat gain lines have a "+숫자" pattern (e.g., "+41 지능", "가속 +234").
+    -- Filtering by digit alone is too loose: TWW gem tooltips include
+    -- "자수정 (등급 N)" type/rank lines that get matched by mistake.
+    local stats = {}
+    for i = 2, scanner:NumLines() do
         local left = _G["PvPsterEnchantScannerTextLeft" .. i]
         if left then
             local text = left:GetText() or ""
-            -- Skip empty / item-type lines, keep lines with numbers (stats)
-            if text:match("%d") and not text:lower():find("required") then
-                return text
+            if text:match("%+%s*%d+") then
+                -- Some PvP gems (e.g. 인지의 머위) embed `\n` inside a single
+                -- tooltip line, which AddDoubleLine renders across multiple
+                -- visual rows. Collapse all whitespace runs to a single space.
+                text = text:gsub("%s+", " "):gsub("^ ", ""):gsub(" $", "")
+                stats[#stats + 1] = text
             end
         end
     end
-    return nil
+    if #stats == 0 then return nil end
+    return table.concat(stats, " / ")
 end
 
 
@@ -204,12 +232,18 @@ local function getPvPItemLevel(itemLink)
     scanner:ClearLines()
     scanner:SetHyperlink(itemLink)
 
-    -- Use global constant first (locale-aware), then fall back to manual patterns
+    -- Locale-independent: take the literal prefix before the first %d in the
+    -- PVP_ITEM_LEVEL_TOOLTIP global, escape Lua pattern metacharacters, then
+    -- match `prefix .. (%d+)`. Avoids dealing with %d/%s format specifiers
+    -- or the KR particle syntax (|1A;B;) at all.
     local globalPattern
     if PVP_ITEM_LEVEL_TOOLTIP then
-        globalPattern = PVP_ITEM_LEVEL_TOOLTIP
-            :gsub("%%", "%%%%")
-            :gsub("%%%%s", "(%%d+)")
+        local prefix = PVP_ITEM_LEVEL_TOOLTIP:match("^(.-)%%d")
+        if prefix and #prefix > 5 then
+            globalPattern = prefix:gsub(
+                "([%(%)%.%+%-%*%?%[%]%^%$])", "%%%1"
+            ) .. "(%d+)"
+        end
     end
 
     for i = 2, scanner:NumLines() do
@@ -221,8 +255,10 @@ local function getPvPItemLevel(itemLink)
                 match = text:match(globalPattern)
             end
             match = match
-                or text:match("PvP%s*[Ii]tem%s*[Ll]evel%s*[:：]%s*(%d+)")
-                or text:match("PvP%s*아이템%s*레벨%s*[:：]%s*(%d+)")
+                or text:match("PvP%s*[Ii]tem%s*[Ll]evel%s*[:：]?%s*(%d+)")
+                or text:match("PvP%s*아이템%s*레벨%s*[:：]?%s*(%d+)")
+                or text:match("아이템%s*레벨이%s*최소%s*(%d+)")
+                or text:match("Item%s*Level%s*Becomes%s*(%d+)")
             if match then return tonumber(match) end
         end
     end
@@ -281,12 +317,24 @@ local function fetchSlot(slotID)
 
     local gemLinks, gemStats = fetchSlotGems(link)
 
+    local enchantName = getEnchantNameFromItem(link)
+    local enchantID = parseEnchantID(link)
+    -- Wowhead-sourced ENCHANT_STATS_BY_ID overrides the localized enchant
+    -- tooltip line with a stat description, since most named enchants do
+    -- not expose stats on the equipped item tooltip.
+    local mappedStats = enchantID and Constants.ENCHANT_STATS_BY_ID
+                            and Constants.ENCHANT_STATS_BY_ID[enchantID]
+    if mappedStats and enchantName then
+        enchantName = enchantName .. " - " .. mappedStats
+    end
+
     return {
         itemLink = link,
         itemLevel = itemLevel,
         pvpItemLevel = getPvPItemLevel(link),
         quality = quality or 0,
-        enchantName = getEnchantNameFromItem(link),
+        enchantName = enchantName,
+        enchantID = enchantID,
         gemLinks = gemLinks,
         gemStats = gemStats,
     }
