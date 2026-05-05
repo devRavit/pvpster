@@ -126,6 +126,11 @@ Constants.ENCHANT_STATS_BY_ID = {
 -- Each entry maps a literal source word → an L key. Order matters: longer
 -- substrings must precede shorter ones so multi-word stats ("Critical Strike",
 -- "최대 마나") aren't partially matched by their suffix ("Strike", "마나").
+--
+-- Sources cross-checked against VgerMods/Pawn (per-locale Localization files),
+-- which has battle-tested patterns for actual in-game gem/item tooltip text.
+-- Some locales include multiple inflections (Russian dative, Spanish/Portuguese
+-- alternates) since gems use different forms than character pane.
 Constants.STAT_KEYWORDS = {
     enUS = {
         { "Critical Strike", "Stat_CritStrike" },
@@ -159,6 +164,9 @@ Constants.STAT_KEYWORDS = {
     deDE = {
         { "Bewegungsgeschwindigkeit", "Stat_MovementSpeed" },
         { "Kritische Trefferchance", "Stat_CritStrike" },
+        { "Kritischer Trefferwert", "Stat_CritStrike" },  -- gem text form
+        { "kritischer Trefferwert", "Stat_CritStrike" },
+        { "Kritische Treffer", "Stat_CritStrike" },
         { "Vielseitigkeit", "Stat_Versatility" },
         { "Meisterschaft", "Stat_Mastery" },
         { "Beweglichkeit", "Stat_Agility" },
@@ -172,7 +180,10 @@ Constants.STAT_KEYWORDS = {
     },
     frFR = {
         { "Vitesse de déplacement", "Stat_MovementSpeed" },
+        { "Score de coup critique", "Stat_CritStrike" },  -- full gem rating form
+        { "Score de critique", "Stat_CritStrike" },
         { "Coup critique", "Stat_CritStrike" },
+        { "Score de crit", "Stat_CritStrike" },  -- abbreviated gem form per Pawn
         { "Polyvalence", "Stat_Versatility" },
         { "Intelligence", "Stat_Intellect" },
         { "Mana max.", "Stat_MaxMana" },
@@ -214,6 +225,8 @@ Constants.STAT_KEYWORDS = {
     },
     ptBR = {
         { "Velocidade de Movimento", "Stat_MovementSpeed" },
+        { "Acerto Crítico", "Stat_CritStrike" },  -- gem text form per Pawn
+        { "Ataque crítico", "Stat_CritStrike" },
         { "Golpe Crítico", "Stat_CritStrike" },
         { "Versatilidade", "Stat_Versatility" },
         { "Aceleração", "Stat_Haste" },
@@ -227,9 +240,26 @@ Constants.STAT_KEYWORDS = {
         { "Mana", "Stat_Mana" },
     },
     ruRU = {
+        -- Russian gem tooltips use "+N к <stat-in-dative>" form, so dative-case
+        -- patterns (with "к " prefix) come first to consume the entire phrase
+        -- including "к ". Nominative variants follow for header/standalone use.
+        -- Per Pawn ruRU patterns: "%+?# к ловкости", "%+?# к критическому удару".
+        { "к скорости передвижения", "Stat_MovementSpeed" },
+        { "к универсальности", "Stat_Versatility" },
+        { "к выносливости", "Stat_Stamina" },
+        { "к критическому удару", "Stat_CritStrike" },
+        { "к искусности", "Stat_Mastery" },
+        { "к интеллекту", "Stat_Intellect" },
+        { "к ловкости", "Stat_Agility" },
+        { "к скорости", "Stat_Haste" },
+        { "к здоровью", "Stat_Health" },
+        { "к силе", "Stat_Strength" },
+        { "к мане", "Stat_Mana" },
+
         { "Скорость передвижения", "Stat_MovementSpeed" },
         { "Универсальность", "Stat_Versatility" },
         { "Выносливость", "Stat_Stamina" },
+        { "Критический удар", "Stat_CritStrike" },
         { "Крит. удар", "Stat_CritStrike" },
         { "Макс. мана", "Stat_MaxMana" },
         { "Искусность", "Stat_Mastery" },
@@ -246,12 +276,14 @@ Constants.STAT_KEYWORDS = {
         { "生命值", "Stat_Health" },
         { "精通", "Stat_Mastery" },
         { "急速", "Stat_Haste" },
-        { "爆击", "Stat_CritStrike" },
+        { "爆击", "Stat_CritStrike" },  -- Blizzard's localization (Pawn/ElvUI)
+        { "暴击", "Stat_CritStrike" },  -- common alternative spelling
         { "全能", "Stat_Versatility" },
         { "智力", "Stat_Intellect" },
         { "力量", "Stat_Strength" },
         { "敏捷", "Stat_Agility" },
         { "耐力", "Stat_Stamina" },
+        { "生命", "Stat_Health" },  -- shorter form sometimes seen
         { "法力", "Stat_Mana" },
     },
     zhTW = {
@@ -265,6 +297,7 @@ Constants.STAT_KEYWORDS = {
         { "力量", "Stat_Strength" },
         { "敏捷", "Stat_Agility" },
         { "耐力", "Stat_Stamina" },
+        { "生命力", "Stat_Health" },  -- longer form must precede shorter
         { "生命", "Stat_Health" },
         { "法力", "Stat_Mana" },
     },
