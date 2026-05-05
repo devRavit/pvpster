@@ -13,6 +13,8 @@ i18n 리팩터 + WoW 클라이언트 지원 locale 8종(frFR/deDE/esES/esMX/ptBR
 - DB schema v2 + v1→v2 자동 wipe 마이그레이션: enchantName에 stat 오버라이드가 합쳐 저장된 v1 데이터를 wipe, UI 설정(창 위치/테마/scale/locale/미니맵)은 보존
 - UI 정리: `"Lv "` → `L["Level"]`, 미니맵 `"ON/OFF"` → `L["StateOn/Off"]`, 언어 버튼 라벨에서 `L["Language"]` 프리픽스 제거(native name만 표시)
 - 데드 코드 `Constants.SLOT_NAMES` 제거 (`SLOT_LABEL_KEYS`만 사용 중)
+- **종족/직업명 현지화**: 캐릭터 툴팁 부제목의 race/class를 `classFile`/`raceFile`(로케일-무관 ID) 기반 `L["CLASS_*"]`/`L["RACE_*"]` 룩업으로 — 13 직업 + ~25 종족 × 10 locale 추가. 누락 시 클라이언트 locale 문자열로 폴백
+- **보석 stat 텍스트 번역**: 캡처된 보석 툴팁 텍스트(`"특화 +16 / 가속 +7"` 등)에서 stat 키워드를 클라이언트 locale에서 활성 애드온 locale로 치환 — `Constants.STAT_KEYWORDS` 패턴 테이블(10 locale × 12 stat) + `Localization:GetCurrent()` 추가
 
 ---
 

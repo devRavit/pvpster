@@ -104,6 +104,9 @@ local function resolveLocale(preference)
 end
 
 
+local currentLocale = DEFAULT_LOCALE
+
+
 local function applyLocale(localeKey)
     clearTable(L)
     -- Lay down enUS first so any key missing from the active locale resolves
@@ -119,11 +122,17 @@ local function applyLocale(localeKey)
             end
         end
     end
+    currentLocale = localeKey
 end
 
 
 function Localization:GetClientLocale()
     return getClientLocale()
+end
+
+
+function Localization:GetCurrent()
+    return currentLocale
 end
 
 
