@@ -582,6 +582,60 @@ local function refreshHeaderLabels()
 end
 
 
+-- Look up race/class via locale-independent file IDs (e.g., "DRUID", "NightElf").
+-- raceFile/classFile come from UnitClass()/UnitRace() and are stable across
+-- locales; the fallback to *Localized is the client-locale string we captured
+-- at collection time, used when the addon's L table doesn't have an entry
+-- for that race/class (e.g., a brand-new race added after these tables were
+-- written, or a race we just haven't translated yet).
+local function getLocalizedClass(character)
+    if character.classFile then
+        local localized = rawget(L, "CLASS_" .. character.classFile:upper())
+        if localized then return localized end
+    end
+    return character.classLocalized
+end
+
+
+local function getLocalizedRace(character)
+    if character.raceFile then
+        local localized = rawget(L, "RACE_" .. character.raceFile:upper())
+        if localized then return localized end
+    end
+    return character.raceLocalized
+end
+
+
+-- Translate gem stat tooltip text from client locale (which is what we
+-- captured at collection time) into the active addon locale by replacing
+-- known stat keywords. If client locale's pattern table is missing or
+-- equals the active locale, returns the input unchanged.
+local function translateGemStats(text)
+    if not text or text == "" then return text end
+
+    local sourceLocale = PvPster.Localization:GetClientLocale()
+    local targetLocale = PvPster.Localization:GetCurrent()
+    if sourceLocale == targetLocale then return text end
+
+    local sourceMap = Constants.STAT_KEYWORDS and Constants.STAT_KEYWORDS[sourceLocale]
+    if not sourceMap then return text end
+
+    for _, pair in ipairs(sourceMap) do
+        local sourceWord, statKey = pair[1], pair[2]
+        local targetWord = rawget(L, statKey)
+        if targetWord then
+            -- Escape Lua pattern metacharacters in the source word so it's
+            -- treated as a literal string in gsub.
+            local pattern = sourceWord:gsub(
+                "([%(%)%.%+%-%*%?%[%]%^%$%%])", "%%%1"
+            )
+            text = text:gsub(pattern, targetWord)
+        end
+    end
+    return text
+end
+
+
 local function showCharacterTooltip(row)
     local character = row.character
     if not character then return end
@@ -594,8 +648,10 @@ local function showCharacterTooltip(row)
     if character.level then
         table.insert(subtitleParts, string.format("%s %d", L["Level"], character.level))
     end
-    if character.raceLocalized then table.insert(subtitleParts, character.raceLocalized) end
-    if character.classLocalized then table.insert(subtitleParts, character.classLocalized) end
+    local race = getLocalizedRace(character)
+    local class = getLocalizedClass(character)
+    if race then table.insert(subtitleParts, race) end
+    if class then table.insert(subtitleParts, class) end
 
     GameTooltip:AddDoubleLine(
         character.name or "?",
@@ -648,7 +704,9 @@ local function showCharacterTooltip(row)
                             local gemIconStr = gemIcon
                                     and string.format("|T%d:12:12:0:0|t ", gemIcon)
                                     or ""
-                            local stats = slot.gemStats and slot.gemStats[i] or ""
+                            local stats = translateGemStats(
+                                slot.gemStats and slot.gemStats[i] or ""
+                            )
                             local rightText = stats ~= ""
                                     and string.format(
                                         "%s%s  |cffcccccc%s|r",
