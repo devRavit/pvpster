@@ -46,26 +46,6 @@ Constants.ITEM_SLOTS = {
 }
 
 
-Constants.SLOT_NAMES = {
-    [1] = "Head",
-    [2] = "Neck",
-    [3] = "Shoulder",
-    [5] = "Chest",
-    [6] = "Waist",
-    [7] = "Legs",
-    [8] = "Feet",
-    [9] = "Wrist",
-    [10] = "Hands",
-    [11] = "Finger1",
-    [12] = "Finger2",
-    [13] = "Trinket1",
-    [14] = "Trinket2",
-    [15] = "Back",
-    [16] = "MainHand",
-    [17] = "OffHand",
-}
-
-
 -- Localization keys for tooltip display
 Constants.SLOT_LABEL_KEYS = {
     [1] = "Slot_Head",
@@ -87,8 +67,11 @@ Constants.SLOT_LABEL_KEYS = {
 }
 
 
--- DB schema version (bump on breaking changes, add migration)
-Constants.DB_VERSION = 1
+-- DB schema version (bump on breaking changes, add migration in DB.lua).
+-- v2 (2026-05): enchant stat overrides moved from Collector merge-time to UI
+--               render-time, so v1 enchantName strings (which had the override
+--               appended) are incompatible. DB.lua wipes characters on mismatch.
+Constants.DB_VERSION = 2
 
 
 -- UI defaults
@@ -109,33 +92,30 @@ Constants.EQUIPMENT_DEBOUNCE = 0.5
 Constants.ITEM_CLASS_GEM = (Enum and Enum.ItemClass and Enum.ItemClass.Gem) or 3
 
 
--- Enchant ID → stat description.
--- Enchant ID is at position 2 of the item link payload and is locale-independent.
--- Sources: Wowhead live 12.0.5, method.gg (2026-03-02), wow-professions.com,
---          icy-veins.com (2026-04-21).
--- Wowhead tooltip stat magnitudes are JS-rendered and cannot be scraped
--- automatically; "+?" placeholders below mean the stat *type* is verified but
--- the exact magnitude needs an in-game tooltip check (or Wowhead with JS).
+-- Enchant ID → Localization key. Enchant ID is at position 2 of the item link
+-- payload and is locale-independent; the resolved string lives in
+-- Localization.lua under the same key, so a UI language switch updates the
+-- displayed stat without needing to re-collect equipment.
+--
+-- Sources: Wowhead live 12.0.5 spell pages (per-language). When adding a new
+-- locale, switch language on Wowhead and use the displayed stat wording:
+--   7969 (spell 1236060) Zul'jin's Mastery               https://www.wowhead.com/spell=1236060
+--   7973 (spell 1236062) Akil'zon's Swiftness            https://www.wowhead.com/spell=1236062
+--   7991 (spell 1236071) Empowered Blessing of Speed     https://www.wowhead.com/spell=1236071
+--   8013 (spell 1236082) Mark of the Magister            https://www.wowhead.com/spell=1236082
+--   8019 (spell 1236085) Farstrider's Hunt               https://www.wowhead.com/spell=1236085
+--   8039 (spell 1236095) Acuity of the Ren'dorei         https://www.wowhead.com/spell=1236095
+--
+-- "+?" placeholders mean the stat *type* is verified but the magnitude needs
+-- an in-game tooltip check (Wowhead JS-renders the numbers).
 -- Note: leg enchants (7937 etc.) are intentionally absent — Tailoring
 -- spellthreads / LW armor kits expose their stat values directly in the
 -- tooltip's "Enchanted:" line, so no override is needed for that slot.
 Constants.ENCHANT_STATS_BY_ID = {
-    -- ===== Enchanting (Midnight 12.0.5) =====
-    -- Ring (반지)
-    [7969] = "+? 특화",                       -- Zul'jin's Mastery (spell 1236060)
-
-    -- Shoulder (어깨) — Speed = 이동속도, NOT Haste
-    [7973] = "+? 이속",                       -- Akil'zon's Swiftness (spell 1236062)
-
-    -- Helm (머리) — Speed + Midnight skyriding charge effect outdoor
-    [7991] = "+? 이속",                       -- Empowered Blessing of Speed (spell 1236071)
-
-    -- Chest (가슴)
-    [8013] = "+? 지능 / +? 최대 마나",        -- Mark of the Magister (spell 1236082)
-
-    -- Boots (발)
-    [8019] = "+? 이속 / +? 체력",             -- Farstrider's Hunt (spell 1236085)
-
-    -- Weapon (무기) — proc-based
-    [8039] = "주문 적중 시 공허의 위력 부여", -- Acuity of the Ren'dorei (spell 1236095)
+    [7969] = "EnchantStat_7969",  -- Ring
+    [7973] = "EnchantStat_7973",  -- Shoulder (Movement Speed, NOT Haste)
+    [7991] = "EnchantStat_7991",  -- Helm
+    [8013] = "EnchantStat_8013",  -- Chest
+    [8019] = "EnchantStat_8019",  -- Boots
+    [8039] = "EnchantStat_8039",  -- Weapon (proc)
 }

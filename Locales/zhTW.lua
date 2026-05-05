@@ -1,0 +1,109 @@
+--[[
+    PvPster Locale: zhTW (繁體中文)
+    Translations follow standard Blizzard WoW terminology where verified;
+    longer sentences are best-effort and warrant a native-speaker review
+    pass before release. Missing keys fall back to enUS.
+]]
+
+local _, PvPster = ...
+
+PvPster.LOCALE_REGISTRY = PvPster.LOCALE_REGISTRY or {
+    strings = {},
+    names = {},
+    order = {},
+}
+
+
+local KEY = "zhTW"
+table.insert(PvPster.LOCALE_REGISTRY.order, KEY)
+PvPster.LOCALE_REGISTRY.names[KEY] = "繁體中文"
+PvPster.LOCALE_REGISTRY.strings[KEY] = {
+    ["Sync"] = "同步",
+    ["Show"] = "顯示",
+    ["Hide"] = "隱藏",
+    ["Reset"] = "重置",
+    ["Help"] = "說明",
+    ["Close"] = "關閉",
+
+    ["Name"] = "名稱",
+    ["Realm"] = "伺服器",
+    ["Level"] = "等",
+    ["Honor"] = "榮譽",
+    ["Conquest"] = "征服",
+    ["BRACKET_BLITZ"] = "閃電戰",
+    ["LastSeen"] = "更新",
+
+    ["NoCharactersTitle"] = "尚無角色資料",
+    ["NoCharactersBody"] = "請使用每個角色登入一次以填入此列表。",
+
+    ["LastSync"] = "上次同步：%s",
+    ["JustNow"] = "剛剛",
+    ["MinutesAgo"] = "%d 分鐘前",
+    ["HoursAgo"] = "%d 小時前",
+    ["DaysAgo"] = "%d 天前",
+
+    ["DataResetConfirm"] = "輸入 /pvpster reset confirm 以清除所有角色資料。",
+    ["DataReset"] = "所有角色資料已清除。",
+    ["SyncDone"] = "%s 同步完成。",
+    ["DebugOn"] = "除錯日誌已啟用。",
+    ["DebugOff"] = "除錯日誌已停用。",
+    ["UnknownCommand"] = "未知指令。請嘗試 /pvpster help。",
+    ["HelpCommands"] = "指令：",
+
+    ["AverageItemLevel"] = "平均物品等級",
+    ["Equipment"] = "裝備",
+    ["Currencies"] = "貨幣",
+    ["Ratings"] = "評分",
+    ["WeeklyShort"] = "週",
+    ["SeasonShort"] = "賽季",
+    ["WinRate"] = "勝率",
+    ["AccountHonor"] = "戰網榮譽",
+    ["Enchant"] = "附魔",
+    ["Gem"] = "寶石",
+
+    ["LeftClickToggle"] = "左鍵：切換視窗",
+    ["RightClickDebug"] = "右鍵：切換除錯",
+    ["DragToReposition"] = "拖曳：調整位置",
+    ["MinimapShown"] = "小地圖按鈕已顯示。",
+    ["MinimapHidden"] = "小地圖按鈕已隱藏。",
+    ["ScaleLabel"] = "縮放  %.2f",
+    ["ScaleSet"] = "縮放已設定為 %.2f",
+    ["Minimap"] = "小地圖",
+    ["ResetConfirmDialog"] = "清除所有 PvPster 角色資料？",
+    ["Theme"] = "主題",
+    ["ThemeSet"] = "主題:%s",
+
+    ["Language"] = "語言",
+    ["LocaleAuto"] = "自動",
+    ["LocaleCurrent"] = "語言:%s(生效:%s)",
+    ["LocaleSupported"] = "支援的語言:",
+    ["LocaleSet"] = "語言已設定為 %s。",
+    ["LocaleUnsupported"] = "不支援的語言。",
+
+    ["Slot_Head"] = "頭部",
+    ["Slot_Neck"] = "頸部",
+    ["Slot_Shoulder"] = "肩部",
+    ["Slot_Chest"] = "胸甲",
+    ["Slot_Waist"] = "腰部",
+    ["Slot_Legs"] = "腿部",
+    ["Slot_Feet"] = "腳",
+    ["Slot_Wrist"] = "手腕",
+    ["Slot_Hands"] = "手",
+    ["Slot_Finger1"] = "戒指 1",
+    ["Slot_Finger2"] = "戒指 2",
+    ["Slot_Trinket1"] = "飾品 1",
+    ["Slot_Trinket2"] = "飾品 2",
+    ["Slot_Back"] = "背部",
+    ["Slot_MainHand"] = "主手",
+    ["Slot_OffHand"] = "副手",
+
+    ["StateOn"] = "開",
+    ["StateOff"] = "關",
+
+    ["EnchantStat_7969"] = "+? 精通",
+    ["EnchantStat_7973"] = "+? 移動速度",
+    ["EnchantStat_7991"] = "+? 移動速度",
+    ["EnchantStat_8013"] = "+? 智力 / +? 法力上限",
+    ["EnchantStat_8019"] = "+? 移動速度 / +? 生命",
+    ["EnchantStat_8039"] = "法術命中時獲得仁多瑞敏銳",
+}

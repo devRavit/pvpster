@@ -9,6 +9,16 @@
 ## SavedVariables: PvPsterDB, PvPsterLogs
 ## IconTexture: Interface\Icons\Achievement_Bg_Winsoa
 
+Locales\enUS.lua
+Locales\koKR.lua
+Locales\frFR.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\esMX.lua
+Locales\ptBR.lua
+Locales\ruRU.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
 Localization.lua
 Constants.lua
 Logger.lua
