@@ -47,21 +47,25 @@ PvPsterMainFrame (Frame, BackdropTemplate)
 
 ## 컬럼 정의
 
-| 컬럼 키 | 헤더 라벨 | 너비 | 정렬 가능 | 표시 형식 |
-|---------|----------|------|-----------|-----------|
-| `name` | 이름 | 130 | ✅ | 클래스 색 텍스트 |
-| `realm` | 서버 | 90 | ✅ | 회색 텍스트 |
-| `level` | Lv | 30 | ✅ | 숫자 |
-| `itemLevel` | iLvl | 50 | ✅ | `642` (정수, 반올림) |
-| `honor` | 명예 | 90 | ✅ | `1500/15000` |
-| `conquest` | 정복 | 90 | ✅ | `825/1350` (totalEarned/cap) |
-| `bracket_1` | 2v2 | 70 | ✅ | `1850` (없으면 `-`) |
-| `bracket_2` | 3v3 | 70 | ✅ | `1850` |
-| `bracket_7` | Shuffle | 80 | ✅ | `1850` |
-| `bracket_9` | Blitz | 70 | ✅ | `1850` |
-| `lastSeen` | 갱신 | 80 | ✅ | `2시간 전` |
+`UI.lua`의 `COLUMNS` 테이블이 단일 소스. 헤더 라벨은 `labelKey`로 `L[]` 룩업.
 
-총 너비: 약 880 (+ 패딩) → 기본 창 너비 920.
+| 컬럼 키 | labelKey | 너비 | 정렬 | align | 표시 형식 |
+|---------|----------|------|------|-------|-----------|
+| `name` | `Name` | 160 | ✅ | LEFT | 클래스 색 텍스트 |
+| `realm` | `Realm` | 120 | ✅ | LEFT | 회색 텍스트 |
+| `level` | `Level` | 40 | ✅ | CENTER | 숫자 |
+| `itemLevel` | `iLvl` | 60 | ✅ | CENTER | `642` (정수, 반올림) |
+| `honor` | `Honor` | 124 | ✅ | CENTER | `1500/15000` |
+| `conquest` | `Conquest` | 124 | ✅ | CENTER | `825/1350` (totalEarned/cap, cap 도달 시 색상) |
+| `bracket_1` | `BRACKET_2V2` | 86 | ✅ | CENTER | `1850` (없으면 `-`) |
+| `bracket_2` | `BRACKET_3V3` | 86 | ✅ | CENTER | `1850` |
+| `bracket_7` | `BRACKET_SHUFFLE` | 96 | ✅ | CENTER | `1850` |
+| `bracket_9` | `BRACKET_BLITZ` | 86 | ✅ | CENTER | `1850` |
+| `lastSeen` | `LastSeen` | 96 | ✅ | RIGHT | `2시간 전` |
+
+총 너비: 약 1080 (+ 패딩) → 기본 창 너비는 `Constants.UI_DEFAULTS.width`.
+
+> `honor` / `conquest` 헤더는 `getHeaderLabel()`이 `L[labelKey]`에 추가 표기를 덧붙일 수 있다 (예: 정복 컬럼의 cap 표기). 정렬용 비교값은 `getCharacterSortValue()`가 컬럼 키별로 분기 처리.
 
 ## 정렬
 
@@ -128,18 +132,12 @@ end
 
 ## 빈 상태
 
-캐릭터 데이터가 0개일 때:
+캐릭터 데이터가 0개일 때, 가운데 정렬·회색 텍스트로 두 줄을 출력:
 
-```
-PvPster
+- 제목: `L["NoCharactersTitle"]` (예: `"No character data yet"` / `"아직 수집된 캐릭터 데이터가 없습니다"`)
+- 본문: `L["NoCharactersBody"]` (예: `"Log into each character once to populate this list."`)
 
-  아직 수집된 캐릭터 데이터가 없습니다.
-
-  각 캐릭터로 한 번씩 로그인해주세요.
-
-```
-
-가운데 정렬, 회색 텍스트.
+문자열 키는 `Locales/{locale}.lua`에 정의되며, 하드코딩 금지. 새 locale은 두 키를 추가하기만 하면 자동 적용 (누락 시 `enUS` 폴백).
 
 ## 토글 동작
 

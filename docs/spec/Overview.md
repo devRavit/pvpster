@@ -29,39 +29,53 @@ PvPster는 단일 애드온이며 내부에서 책임 단위로 파일을 분리
 | 파일 | 역할 |
 |------|------|
 | `Core.lua` | 진입점, 이벤트 등록/디스패치, 다른 모듈 초기화 |
-| `Constants.lua` | 화폐 ID, 브래킷 인덱스, 슬롯 ID 등 상수 |
-| `Localization.lua` | enUS + koKR 문자열 |
-| `Logger.lua` | SavedVariables 기반 로그 |
-| `DB.lua` | SavedVariables 읽기/쓰기, 마이그레이션 |
-| `Collector.lua` | 현재 캐릭의 화폐/레이팅/장비 데이터 수집 |
-| `UI.lua` | 메인 창, 캐릭터 목록 테이블, 컬럼 정렬 |
+| `Constants.lua` | 화폐 ID, 브래킷 인덱스, 슬롯/인챈트/스탯 키워드 테이블 등 상수 |
+| `Locales/{key}.lua` (×10) | 각 언어별 문자열 데이터 (enUS/koKR/frFR/deDE/esES/esMX/ptBR/ruRU/zhCN/zhTW) |
+| `Localization.lua` | i18n 엔진 — `Apply`/`Resolve`/`GetSupportedLocales`, per-key enUS 폴백 |
+| `Logger.lua` | SavedVariables(`PvPsterLogs`) 기반 로그 |
+| `DB.lua` | SavedVariables(`PvPsterDB`) 읽기/쓰기, 스키마 마이그레이션 |
+| `Theme.lua` | 색상/스타일 토큰 |
+| `Collector.lua` | 현재 캐릭의 화폐/레이팅/장비(+인챈트/보석) 데이터 수집 |
+| `UI.lua` | 메인 창, 캐릭터 목록 테이블, 컬럼 정렬, 언어 드롭다운 |
+| `Minimap.lua` | 미니맵 버튼 |
 | `Slash.lua` | `/pvpster`, `/pvps` 명령 |
 
 ## 프로젝트 구조
 
+리포 루트가 곧 애드온 루트 (BigWigs Packager 표준 단일 모듈, 평탄화 구조).
+
 ```
 pvpster/
+├── PvPster.toc
+├── Locales/
+│   ├── enUS.lua  koKR.lua  frFR.lua  deDE.lua
+│   ├── esES.lua  esMX.lua  ptBR.lua  ruRU.lua
+│   └── zhCN.lua  zhTW.lua
+├── Localization.lua
+├── Constants.lua
+├── Logger.lua
+├── DB.lua
+├── Theme.lua
+├── Collector.lua
+├── UI.lua
+├── Minimap.lua
+├── Slash.lua
+├── Core.lua
 ├── docs/
 │   └── spec/
-│       ├── Overview.md      (이 문서)
-│       ├── Core.md          DB, 이벤트, 슬래시
-│       ├── Collector.md     데이터 수집 명세
-│       └── UI.md            창 레이아웃, 컬럼
-├── PvPster/
-│   ├── PvPster.toc
-│   ├── Localization.lua
-│   ├── Constants.lua
-│   ├── Logger.lua
-│   ├── DB.lua
-│   ├── Core.lua
-│   ├── Collector.lua
-│   ├── UI.lua
-│   └── Slash.lua
+│       ├── Overview.md       (이 문서)
+│       ├── Core.md           Core / DB / Logger / Slash
+│       ├── Collector.md      데이터 수집 명세
+│       ├── UI.md             창 레이아웃, 컬럼
+│       └── Localization.md   i18n 엔진 명세
 ├── README.md
-├── CHANGELOG.md
+├── CHANGELOG.md            전체 이력 (GitHub용)
+├── RELEASE_NOTES.md        CurseForge 노출용 현재 릴리즈 노트
 ├── CLAUDE.md
+├── .pkgmeta                BigWigs Packager 입력
+├── .github/workflows/      auto-tag.yml + release.yml
 ├── .gitignore
-└── setup-junctions.ps1
+└── setup-junctions.ps1     Windows 개발자용 junction 설치
 ```
 
 ## 12.0.5 API 사용 요약
