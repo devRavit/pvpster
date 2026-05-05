@@ -1,5 +1,21 @@
 # Changelog
 
+## v20260505.1
+`2026.05.05 (KST)`
+
+i18n 리팩터 + WoW 클라이언트 지원 locale 8종(frFR/deDE/esES/esMX/ptBR/ruRU/zhCN/zhTW) 추가.
+
+- `Locales/` 디렉토리로 locale 데이터 분리 — `Localization.lua`는 `PvPster.LOCALE_REGISTRY` 기반 엔진만 담당, 새 locale 추가는 파일 1개 + `.toc` 한 줄로 완결
+- per-key fallback 머지: 비-enUS locale에서 누락된 키는 enUS로 폴백 (이전엔 raw key 문자열 노출되던 버그)
+- 슬래시 / 드롭다운의 지원 locale 리스트 자동 도출 (`Slash.lua`의 정적 `LOCALE_ALIASES`, 메시지 내 하드코딩 locale 리스트 제거)
+- 인챈트 스탯 오버라이드 렌더 시점 처리 — `Constants.ENCHANT_STATS_BY_ID`를 enchant ID → L 키 매핑으로, locale 변경 시 재수집 없이 바로 반영. `rawget`으로 누락 키의 raw 노출 방지
+- 인챈트 stat 번역은 ElvUI/RatingBuster 교차 검증된 Blizzard 공식 용어 기반 (deDE는 Wowhead spell 페이지 직접 확인)
+- DB schema v2 + v1→v2 자동 wipe 마이그레이션: enchantName에 stat 오버라이드가 합쳐 저장된 v1 데이터를 wipe, UI 설정(창 위치/테마/scale/locale/미니맵)은 보존
+- UI 정리: `"Lv "` → `L["Level"]`, 미니맵 `"ON/OFF"` → `L["StateOn/Off"]`, 언어 버튼 라벨에서 `L["Language"]` 프리픽스 제거(native name만 표시)
+- 데드 코드 `Constants.SLOT_NAMES` 제거 (`SLOT_LABEL_KEYS`만 사용 중)
+
+---
+
 ## v20260502.3
 `2026.05.02 (KST)`
 

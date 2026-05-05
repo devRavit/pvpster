@@ -49,11 +49,29 @@ local function defaultStorage()
 end
 
 
+-- Schema migration: when the saved DB's version doesn't match the current
+-- DB_VERSION, wipe character data and reset to the new version. UI preferences
+-- (window position, theme, scale, locale, minimap state) are preserved so
+-- users don't lose their layout across upgrades.
+--
+-- v1 → v2: enchantName strings were collected with the Wowhead stat override
+-- already merged in ("Mark of the Magister - +? 지능 / +? 최대 마나"). v2
+-- stores enchantName raw and appends the override at UI render time so a
+-- locale switch updates wording without re-collection. Surgically un-merging
+-- the v1 strings is unreliable, so a clean wipe + recollect is safer.
 local function migrate(storage)
-    if not storage.version then
-        storage.version = 1
-    end
-    -- v1 → v2 마이그레이션 자리
+    local current = Constants.DB_VERSION
+    local saved = storage.version
+
+    if saved == current then return end
+
+    storage.characters = {}
+    storage.version = current
+
+    Logger:Log("DB", string.format(
+        "Schema migration: wiped character data (was v%s, now v%d)",
+        tostring(saved or "nil"), current
+    ))
 end
 
 
@@ -68,6 +86,11 @@ function DB:Initialize()
     if not _G.PvPsterDB then
         _G.PvPsterDB = defaultStorage()
     else
+        -- Run migration BEFORE ensureField so we observe the stored version
+        -- before it's backfilled with the current default. A legacy DB with
+        -- no version field is treated as a mismatch and wiped.
+        migrate(_G.PvPsterDB)
+
         local default = defaultStorage()
         ensureField(_G.PvPsterDB, "characters", {})
         ensureField(_G.PvPsterDB, "ui", default.ui)
@@ -94,7 +117,6 @@ function DB:Initialize()
         if _G.PvPsterDB.ui.locale == nil then
             _G.PvPsterDB.ui.locale = "auto"
         end
-        migrate(_G.PvPsterDB)
     end
 
     Logger:Log(

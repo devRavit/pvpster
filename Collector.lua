@@ -317,16 +317,11 @@ local function fetchSlot(slotID)
 
     local gemLinks, gemStats = fetchSlotGems(link)
 
+    -- Stat override (Wowhead-sourced) is appended at UI render time via
+    -- Constants.ENCHANT_STATS_BY_ID[enchantID] → L[key], so a language
+    -- change updates the displayed stat without re-collecting equipment.
     local enchantName = getEnchantNameFromItem(link)
     local enchantID = parseEnchantID(link)
-    -- Wowhead-sourced ENCHANT_STATS_BY_ID overrides the localized enchant
-    -- tooltip line with a stat description, since most named enchants do
-    -- not expose stats on the equipped item tooltip.
-    local mappedStats = enchantID and Constants.ENCHANT_STATS_BY_ID
-                            and Constants.ENCHANT_STATS_BY_ID[enchantID]
-    if mappedStats and enchantName then
-        enchantName = enchantName .. " - " .. mappedStats
-    end
 
     return {
         itemLink = link,

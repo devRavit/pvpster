@@ -28,6 +28,18 @@ local function chatPrint(message)
 end
 
 
+-- Build the "auto|enUS|koKR|..." segment from the supported-locale list so
+-- adding a new locale to Localization.lua propagates to the help text and
+-- lowercase alias map automatically.
+local function listSupportedLocaleKeys()
+    local keys = { "auto" }
+    for _, entry in ipairs(PvPster.Localization:GetSupportedLocales()) do
+        keys[#keys + 1] = entry.key
+    end
+    return keys
+end
+
+
 local function showHelp()
     chatPrint(L["HelpCommands"])
     chatPrint("  /pvpster — " .. L["Show"] .. " / " .. L["Hide"])
@@ -36,23 +48,27 @@ local function showHelp()
     chatPrint("  /pvpster sync — " .. L["Sync"])
     chatPrint("  /pvpster reset — " .. L["Reset"])
     chatPrint("  /pvpster debug on|off")
-    chatPrint("  /pvpster lang [auto|enUS|koKR] — " .. L["Language"])
+    chatPrint(string.format(
+        "  /pvpster lang [%s] — %s",
+        table.concat(listSupportedLocaleKeys(), "|"),
+        L["Language"]
+    ))
     chatPrint("  /pvpster help")
 end
 
 
 -- WoW locale codes are case-sensitive (enUS, koKR). Accept lowercase input
--- for ergonomics and normalize back to the canonical casing.
-local LOCALE_ALIASES = {
-    auto = "auto",
-    enus = "enUS",
-    kokr = "koKR",
-}
-
-
+-- for ergonomics and normalize back to the canonical casing. Built lazily
+-- from SUPPORTED_LOCALES so new locales don't need a manual entry here.
 local function normalizeLocaleArg(input)
     local lowered = (input or ""):lower()
-    return LOCALE_ALIASES[lowered] or input
+    if lowered == "auto" then return "auto" end
+    for _, entry in ipairs(PvPster.Localization:GetSupportedLocales()) do
+        if entry.key:lower() == lowered then
+            return entry.key
+        end
+    end
+    return input
 end
 
 
@@ -110,21 +126,20 @@ local commandHandlers = {
     end,
     lang = function(arg)
         local Localization = PvPster.Localization
+        local supportedList = table.concat(listSupportedLocaleKeys(), ", ")
+
         if arg == "" then
             local saved = PvPster.DB:GetUIState().locale or "auto"
             local effective = Localization:Resolve(saved)
             chatPrint(string.format(L["LocaleCurrent"], saved, effective))
-            local supported = { "auto" }
-            for _, entry in ipairs(Localization:GetSupportedLocales()) do
-                table.insert(supported, entry.key)
-            end
-            chatPrint(L["LocaleSupported"] .. " " .. table.concat(supported, ", "))
+            chatPrint(L["LocaleSupported"] .. " " .. supportedList)
             return
         end
 
         local normalized = normalizeLocaleArg(arg)
         if not Localization:IsSupported(normalized) then
             chatPrint(L["LocaleUnsupported"])
+            chatPrint(L["LocaleSupported"] .. " " .. supportedList)
             return
         end
 

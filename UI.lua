@@ -16,6 +16,7 @@ local math = math
 local tostring = tostring
 local tonumber = tonumber
 local time = time
+local rawget = rawget
 
 -- WoW API Localization
 local CreateFrame = CreateFrame
@@ -304,7 +305,7 @@ local function refreshMinimapButtonLabel()
     if not minimapButton then return end
     local visible = DB:GetUIState().minimapVisible
     if visible == nil then visible = true end
-    local stateText = visible and "ON" or "OFF"
+    local stateText = visible and L["StateOn"] or L["StateOff"]
     local color = visible and "|cff66ff66" or "|cffff6666"
     minimapButton:SetText(string.format("%s  %s%s|r", L["Minimap"], color, stateText))
 end
@@ -335,7 +336,7 @@ local function refreshLanguageButtonLabel()
     if not languageButton then return end
     local effective = getCheckedLocale()
     local nativeName = PvPster.Localization:GetNativeName(effective)
-    languageButton:SetText(string.format("%s  %s  ▼", L["Language"], nativeName))
+    languageButton:SetText(string.format("%s  ▼", nativeName))
 end
 
 
@@ -590,7 +591,9 @@ local function showCharacterTooltip(row)
 
     local color = RAID_CLASS_COLORS[character.classFile] or { r = 1, g = 1, b = 1 }
     local subtitleParts = {}
-    if character.level then table.insert(subtitleParts, "Lv " .. character.level) end
+    if character.level then
+        table.insert(subtitleParts, string.format("%s %d", L["Level"], character.level))
+    end
     if character.raceLocalized then table.insert(subtitleParts, character.raceLocalized) end
     if character.classLocalized then table.insert(subtitleParts, character.classLocalized) end
 
@@ -660,13 +663,23 @@ local function showCharacterTooltip(row)
                         end
                     end
 
-                    -- Enchant on its own row, right-aligned
+                    -- Enchant on its own row, right-aligned. Stat override
+                    -- (Wowhead-sourced) is appended at render time so a UI
+                    -- language switch updates the wording immediately.
+                    -- rawget bypasses the L metatable fallback so a missing
+                    -- translation doesn't display as "EnchantStat_xxxx".
                     if slot.enchantName then
+                        local statsKey = slot.enchantID
+                                and Constants.ENCHANT_STATS_BY_ID[slot.enchantID]
+                        local statsText = statsKey and rawget(L, statsKey)
+                        local enchantText = statsText
+                                and (slot.enchantName .. " - " .. statsText)
+                                or slot.enchantName
                         GameTooltip:AddDoubleLine(
                             " ",
                             string.format(
                                 "|TInterface\\Icons\\inv_misc_enchantedscroll:12:12:0:0|t %s",
-                                slot.enchantName
+                                enchantText
                             ),
                             0, 0, 0,
                             0.4, 0.7, 1
