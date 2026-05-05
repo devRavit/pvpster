@@ -1,0 +1,31 @@
+# Repo-wide EOL policy: store text as LF, check out as LF, regardless of
+# each contributor's core.autocrlf setting. Keeps Lua, TOC, YAML, JSON, MD
+# byte-identical across Windows / macOS / Linux.
+
+* text=auto eol=lf
+
+# Explicit text types we ship
+*.lua   text eol=lf
+*.md    text eol=lf
+*.toc   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.sh    text eol=lf
+*.gitattributes text eol=lf
+*.gitignore     text eol=lf
+
+# Windows-only scripts: PowerShell / batch behave best with CRLF
+*.ps1   text eol=crlf
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binary assets WoW addons sometimes ship — never EOL-convert
+*.blp   binary
+*.tga   binary
+*.ttf   binary
+*.otf   binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
