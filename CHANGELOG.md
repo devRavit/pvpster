@@ -1,5 +1,20 @@
 # Changelog
 
+## v20260506.1
+`2026.05.06 (KST)`
+
+문서 정합성 갱신 + EOL 정책 고정 (사용자 영향 없음).
+
+- README.md 영문/한국어 양언어로 갱신 — 모든 슬래시 명령(`/pvpster lang/scale/minimap/debug` 포함), CurseForge 배포 파이프라인, SavedVariables, 10 locale 정보 반영
+- `docs/spec/Overview.md` 모듈 표·구조 트리 평탄화 반영 (`Theme.lua`·`Minimap.lua`·`Locales/` 등재)
+- `docs/spec/Core.md` 전역 namespace 갱신, DB 스키마 v2(장비에 `pvpItemLevel`/`enchantID`/`enchantName`/`gemLinks`/`gemStats`), DB 함수 5개 추가, Slash 명령 표 정정(`remove` 제거 + `minimap`/`scale` 추가)
+- `docs/spec/Collector.md` 인챈트 스캐너·보석 stat 캡처 메커니즘, 계정 공유 화폐 전파, `RequestPVPRewards` 워밍 추가
+- `docs/spec/UI.md` 컬럼 너비/`labelKey`/`align` 코드와 일치, 빈 상태 메시지 i18n 키로 갱신
+- `docs/spec/Localization.md` 신규 — i18n 엔진 명세(레지스트리 구조, resolution 알고리즘, per-key 폴백, 도메인 i18n 메커니즘 3종, 신규 locale 추가 절차)
+- `.gitattributes` 추가 — 텍스트 파일 LF 강제(PowerShell·배치만 CRLF), `core.autocrlf` 설정 무관하게 일관성 보장. `docs/spec/UI.md`를 CRLF → LF로 정규화
+
+---
+
 ## v20260505.1
 `2026.05.05 (KST)`
 

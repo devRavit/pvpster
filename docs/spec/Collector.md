@@ -14,7 +14,7 @@
 
 ```lua
 function Collector:Initialize()
-    -- 초기 상태 세팅, 이벤트는 Core가 등록
+    -- 초기 상태 세팅. 이벤트 등록은 Core가 담당.
 end
 
 function Collector:RunFullSync()
@@ -23,19 +23,19 @@ function Collector:RunFullSync()
 end
 
 function Collector:UpdateCharacter()
-    -- 정체성 정보 (name, class, level, faction)
+    -- 정체성 정보 (name, class, level, faction, race, gender, lastSeen)
 end
 
 function Collector:UpdateCurrencies()
-    -- 화폐 3종 갱신
+    -- 화폐 3종 갱신. 계정 공유 명예는 DB:PropagateAccountCurrency로 모든 캐릭에 전파.
 end
 
 function Collector:UpdateRatings()
-    -- 5개 브래킷 레이팅 갱신
+    -- 4개 브래킷 레이팅 갱신 (TRACKED_BRACKETS)
 end
 
 function Collector:UpdateEquipment()
-    -- 평균 ilvl + 슬롯별 정보 갱신
+    -- 평균 ilvl + 슬롯별 정보 갱신 (debounce 0.5s)
 end
 ```
 
@@ -56,6 +56,8 @@ local realm = GetNormalizedRealmName()
 ```
 
 DB 키: `string.format("%s-%s", realm, name)`
+
+`classFile`/`raceFile`은 로케일-무관 ID라 UI에서 `L["CLASS_*"]` / `L["RACE_*"]`로 룩업해 현지화. `classLocalized`는 캡처 시점의 로컬 표기 (룩업 실패 시 폴백용).
 
 ---
 
@@ -94,6 +96,10 @@ UI는 다음 형식으로 노출:
 - 명예: `quantity / maxQuantity` (예: `1500 / 15000`)
 - 정복: `totalEarned / maxQuantity` (예: `825 / 1350`) — 시즌 누적 / 시즌 캡
 
+### 계정 공유 화폐 전파
+
+계정 공유 명예(currencyID 1585)는 캐릭터가 아니라 계정 단위로 갱신된다. 현재 로그인한 캐릭에서 값을 읽은 뒤 `DB:PropagateAccountCurrency("accountHonor", value)`로 모든 캐릭터 entry의 `currency.accountHonor` 필드에 동일 값을 반영. 이렇게 하지 않으면 부캐 행에는 그 캐릭이 마지막으로 로그인했던 시점의 stale 값이 표시된다.
+
 ---
 
 ## 레이팅 수집
@@ -102,10 +108,10 @@ UI는 다음 형식으로 노출:
 
 ```lua
 TRACKED_BRACKETS = {
-    { index = 1, key = "2v2",        labelKey = "BRACKET_2V2" },
-    { index = 2, key = "3v3",        labelKey = "BRACKET_3V3" },
-    { index = 7, key = "shuffle",    labelKey = "BRACKET_SHUFFLE",  usesRounds = true },
-    { index = 9, key = "blitz",      labelKey = "BRACKET_BLITZ",    usesRounds = true },
+    { index = 1, key = "2v2",        labelKey = "BRACKET_2V2"     },
+    { index = 2, key = "3v3",        labelKey = "BRACKET_3V3"     },
+    { index = 7, key = "shuffle",    labelKey = "BRACKET_SHUFFLE", usesRounds = true },
+    { index = 9, key = "blitz",      labelKey = "BRACKET_BLITZ",   usesRounds = true },
 }
 ```
 
@@ -145,9 +151,7 @@ end
 
 ### 워밍 호출
 
-`PLAYER_LOGIN` 시 한 번 `RequestRatedInfo()` 호출. `PVP_RATED_STATS_UPDATE` 이벤트에서
-실제 값 조회. 호출 없이 바로 `GetPersonalRatedInfo`를 부르면 0/nil 반환되는 경우가 있어
-이벤트 기반 갱신을 우선시한다.
+`PLAYER_LOGIN` 시 한 번 `RequestRatedInfo()` + `RequestPVPRewards()` 호출 (Core가 수행). `PVP_RATED_STATS_UPDATE` 이벤트에서 실제 값 조회. 호출 없이 바로 `GetPersonalRatedInfo`를 부르면 0/nil 반환되는 경우가 있어 이벤트 기반 갱신을 우선시한다.
 
 ---
 
@@ -177,24 +181,45 @@ ITEM_SLOTS = {
 ```
 
 ```lua
-local function FetchSlot(slotID)
+local function fetchSlot(slotID)
     local link = GetInventoryItemLink("player", slotID)
     if not link then return nil end
 
     local quality = GetInventoryItemQuality("player", slotID)
     local location = ItemLocation:CreateFromEquipmentSlot(slotID)
-    local itemLevel = nil
+    local itemLevel = 0
     if C_Item.DoesItemExist(location) then
-        itemLevel = C_Item.GetCurrentItemLevel(location)
+        itemLevel = C_Item.GetCurrentItemLevel(location) or 0
     end
+
+    local gemLinks, gemStats = fetchSlotGems(link)
+    local enchantName = getEnchantNameFromItem(link)
+    local enchantID = parseEnchantID(link)
 
     return {
         itemLink = link,
-        itemLevel = itemLevel or 0,
+        itemLevel = itemLevel,
+        pvpItemLevel = getPvPItemLevel(link),       -- PvP 환경 ilvl (참고용)
         quality = quality or 0,
+        enchantName = enchantName,                  -- 클라이언트 locale 캡처 (raw)
+        enchantID = enchantID,                      -- 로케일-무관 (UI 렌더 시 stat 오버라이드 룩업)
+        gemLinks = gemLinks,                        -- 보석 아이템 링크 배열
+        gemStats = gemStats,                        -- 캡처 시점 stat 텍스트 배열
     }
 end
 ```
+
+### 인챈트 캡처
+
+- **`enchantID`**: 아이템 링크의 `|Hitem:itemID:enchantID:...|h` 형식에서 두 번째 위치를 파싱. 로케일-무관이라 UI 렌더 시 `Constants.ENCHANT_STATS_BY_ID[enchantID] → L[key]`로 stat 오버라이드를 합성한다. 이렇게 분리해 두면 사용자가 언어를 바꿔도 재수집 없이 stat 표기가 즉시 갱신된다.
+- **`enchantName`**: 전용 `enchantScanner` 툴팁 프레임(`SetOwner(WorldFrame, "ANCHOR_NONE")`)으로 아이템 링크를 스캔해 인챈트 이름 줄을 추출. 클라이언트 locale 그대로 raw 저장.
+
+### 보석 캡처
+
+- **`gemLinks`**: `GetItemGem(itemLink, i)`로 슬롯의 보석 링크들을 수집.
+- **`gemStats`**: 각 보석 링크에 대해 `getGemStatText`가 툴팁을 스캔해 stat 줄(예: `"특화 +16 / 가속 +7"`)을 추출. 캡처는 클라이언트 locale로 이뤄지지만, UI 렌더 시 `Constants.STAT_KEYWORDS` 패턴 테이블(10 locale × stat 키워드)로 클라이언트 locale → 활성 애드온 locale 치환.
+
+> 일부 PvP 보석 툴팁은 한 줄에 `\n`을 끼워 여러 stat을 표기 — 스캐너는 이걸 분해해 한 줄 표현으로 정리한다.
 
 ### 갱신 빈도
 
@@ -232,3 +257,5 @@ end
 | 신규 캐릭, 레이팅 한 번도 못 함 | 모든 필드 0 / nil 그대로 저장 |
 | 정복 캡 미해제 (시즌 초) | quantity=0 그대로 |
 | API 호출 실패 (`GetPersonalRatedInfo` nil 반환) | 기존 DB 값 보존 (덮어쓰지 않음) |
+| 슬롯 빈 칸 (예: 부무기 없음) | `slots[slotID] = nil` (설정 안 함) |
+| 인챈트 없는 슬롯 | `enchantID = 0`, `enchantName = nil` |
