@@ -149,7 +149,7 @@ PvPster.LOCALE_REGISTRY.strings[KEY] = {
 
     ["Stat_Mastery"] = "Искусность",
     ["Stat_Haste"] = "Скорость",
-    ["Stat_CritStrike"] = "Крит. удар",
+    ["Stat_CritStrike"] = "Критический удар",
     ["Stat_Versatility"] = "Универсальность",
     ["Stat_Intellect"] = "Интеллект",
     ["Stat_Strength"] = "Сила",
