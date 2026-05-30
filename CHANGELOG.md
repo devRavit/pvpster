@@ -1,5 +1,17 @@
 # Changelog
 
+## v20260530.1
+`2026.05.30 (KST)`
+
+정복 컬럼: cap이 API에서 0/nil로 내려오는 케이스의 행 표시·색상 fallback 처리.
+
+- `UI.lua` 정복 행 텍스트 — cap이 있으면 기존대로 `{owned} ({earned})`, cap이 0/nil이면 괄호 안 `totalEarned`까지 숨기고 `{owned}`만 표시 (`formatConquest`에 `showEarned` 인자 추가)
+- `UI.lua` 행 색상 분기 — cap이 0/nil이면 `Constants.CONQUEST_WEEKLY_CAP_FALLBACK`(8,000) 대비 `totalEarned`로 cap 도달 여부 판정. 이전엔 무조건 빨강이었음
+- `Constants.lua` `CONQUEST_WEEKLY_CAP_FALLBACK = 8000` 신설 — 12.0 conquest는 `useTotalEarnedForMaxQty=true` + `maxQuantity=0`로 내려오는 게 일반적이라 fallback 필요
+- `docs/spec/UI.md` 정복 컬럼 표시 형식 정정 (코드와 동기화)
+
+---
+
 ## v20260506.1
 `2026.05.06 (KST)`
 

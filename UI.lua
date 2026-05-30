@@ -130,9 +130,12 @@ local function formatCurrencyWithMax(currencyData, useTotalEarned, maxOverride)
 end
 
 
-local function formatConquest(conquestData)
+local function formatConquest(conquestData, showEarned)
     if not conquestData then return "-" end
     local owned = conquestData.quantity or 0
+    if not showEarned then
+        return formatNumber(owned)
+    end
     local earned = conquestData.totalEarned or 0
     return string.format("%s (%s)", formatNumber(owned), formatNumber(earned))
 end
@@ -893,7 +896,6 @@ local function fillRow(row, character, index)
     row.texts.honor:SetText(formatCurrency(currency.honor, false))
     row.texts.honor:SetTextColor(0.95, 0.95, 0.95)
 
-    row.texts.conquest:SetText(formatConquest(currency.conquest))
     local conquest = currency.conquest
     if conquest then
         local earned = conquest.totalEarned or 0
@@ -903,12 +905,24 @@ local function fillRow(row, character, index)
         -- show "capped" the moment their totalEarned matches this week's cap.
         local sharedMax = getCurrencyMaxForCurrentCharacter("conquest")
         local max = sharedMax or conquest.maxQuantity or 0
-        if max > 0 and earned >= max then
+        -- When the API doesn't surface a cap, hide the "(earned)" portion too —
+        -- the bare total is meaningless without a cap to compare against.
+        row.texts.conquest:SetText(formatConquest(conquest, max > 0))
+        local capped
+        if max > 0 then
+            capped = earned >= max
+        else
+            -- API didn't surface a cap (12.0 conquest reports maxQuantity=0).
+            -- Compare against the known weekly cap so the color still signals progress.
+            capped = earned >= Constants.CONQUEST_WEEKLY_CAP_FALLBACK
+        end
+        if capped then
             row.texts.conquest:SetTextColor(0.4, 0.7, 1)   -- blue: capped
         else
             row.texts.conquest:SetTextColor(1, 0.4, 0.4)   -- red: below cap
         end
     else
+        row.texts.conquest:SetText(formatConquest(nil))
         row.texts.conquest:SetTextColor(0.6, 0.6, 0.6)
     end
 

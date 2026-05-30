@@ -16,6 +16,12 @@ Constants.ACCOUNT_WIDE_HONOR_CURRENCY_ID = 1585
 Constants.CONQUEST_CURRENCY_ID = 1602
 
 
+-- Conquest weekly cap fallback. The 12.0 API returns maxQuantity=0 for conquest
+-- when useTotalEarnedForMaxQty=true, so row color compares totalEarned against
+-- this value when the API doesn't surface a cap.
+Constants.CONQUEST_WEEKLY_CAP_FALLBACK = 8000
+
+
 -- PvP Bracket Indices (verified from Blizzard_FrameXMLBase/Constants.lua)
 -- CONQUEST_BRACKET_INDEXES = { 7, 9, 1, 2, 4 }
 Constants.BRACKET_2V2 = 1

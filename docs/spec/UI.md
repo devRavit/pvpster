@@ -56,7 +56,7 @@ PvPsterMainFrame (Frame, BackdropTemplate)
 | `level` | `Level` | 40 | ✅ | CENTER | 숫자 |
 | `itemLevel` | `iLvl` | 60 | ✅ | CENTER | `642` (정수, 반올림) |
 | `honor` | `Honor` | 124 | ✅ | CENTER | `1500/15000` |
-| `conquest` | `Conquest` | 124 | ✅ | CENTER | `825/1350` (totalEarned/cap, cap 도달 시 색상) |
+| `conquest` | `Conquest` | 124 | ✅ | CENTER | `825 (12,549)` (owned (earned), cap 미노출 시 괄호 생략, cap 도달 시 색상) |
 | `bracket_1` | `BRACKET_2V2` | 86 | ✅ | CENTER | `1850` (없으면 `-`) |
 | `bracket_2` | `BRACKET_3V3` | 86 | ✅ | CENTER | `1850` |
 | `bracket_7` | `BRACKET_SHUFFLE` | 96 | ✅ | CENTER | `1850` |
